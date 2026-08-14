@@ -433,27 +433,82 @@ def enviar_piramide_diaria():
 def enviar_regalos_diarios():
     ahora = datetime.now()
     fecha_str = ahora.strftime("%d/%m/%Y")
-    seed_val = int(ahora.strftime("%Y%m%d")) + 99
-    rnd = random.Random(seed_val)
-    regalos_seleccionados = rnd.sample(ANIMALES_POOL, 3)
-     
-    for animal in regalos_seleccionados:
-        numero = animal.split(" - ")[0].zfill(2)
-        RECOMENDADOS_HOY[numero] = {"motivo": "🎁 Regalo del Día", "hora_emision": ahora}
 
+    # ==========================================================
+    # REGALOS DEL OTRO BOT
+    # Deben ser exactamente los mismos que genera tu otro bot
+    # ==========================================================
+    seed_otro_bot = int(ahora.strftime("%Y%m%d")) + 99
+    rnd_otro_bot = random.Random(seed_otro_bot)
+
+    regalos_otro_bot = rnd_otro_bot.sample(ANIMALES_POOL, 3)
+
+    numeros_otro_bot = set()
+
+    for animal in regalos_otro_bot:
+        numero = animal.split(" - ")[0].strip()
+
+        if numero.isdigit():
+            numero = f"{int(numero):02d}"
+
+        numeros_otro_bot.add(numero)
+
+    print("🎁 Regalos del otro bot:", numeros_otro_bot)
+
+    # ==========================================================
+    # REGALOS AGENCIA SOFIA
+    # Se seleccionan únicamente del 00 al 36
+    # EXCLUYENDO los que ya usa el otro bot
+    # ==========================================================
+    disponibles_sofia = []
+
+    for animal in ANIMALES_POOL:
+        numero = animal.split(" - ")[0].strip()
+
+        if numero.isdigit():
+            numero_normalizado = f"{int(numero):02d}"
+        else:
+            numero_normalizado = numero
+
+        if numero_normalizado not in numeros_otro_bot:
+            disponibles_sofia.append(animal)
+
+    # Semilla diferente para que Sofia tenga una selección propia
+    seed_sofia = int(ahora.strftime("%Y%m%d")) + 2026
+    rnd_sofia = random.Random(seed_sofia)
+
+    regalos_seleccionados = rnd_sofia.sample(disponibles_sofia, 3)
+
+    # ==========================================================
+    # REGISTRAR LOS REGALOS DE SOFIA
+    # ==========================================================
+    for animal in regalos_seleccionados:
+        numero = animal.split(" - ")[0].strip()
+
+        if numero.isdigit():
+            numero = f"{int(numero):02d}"
+
+        RECOMENDADOS_HOY[numero] = {
+            "motivo": "🎁 Regalo del Día - Agencia Sofia",
+            "hora_emision": ahora
+        }
+
+    # ==========================================================
+    # MENSAJE
+    # ==========================================================
     mensaje_regalos = (
         "🎁 *LOS REGALOS DE LA AGENCIA SOFIA* 🎁\n"
         f"📅 Fecha: {fecha_str}\n\n"
-        "¡Los fijos recomendados para reventar la banca hoy:\n\n"
+        "🔥 *Regalitos exclusivos de Agencia Sofia:*\n\n"
         f"🌟 *1er Regalo:* {regalos_seleccionados[0]}\n"
         f"🌟 *2do Regalo:* {regalos_seleccionados[1]}\n"
         f"🌟 *3er Regalo:* {regalos_seleccionados[2]}\n\n"
         "📲 WHATSAPP: 04163199157\n"
         f"{ENLACE_CANAL}\n\n"
-        "¡Mucha suerte en tus jugadas! 🍀✨"
+        "🍀 ¡Mucha suerte en tus jugadas!"
     )
-    enviar_telegram(mensaje_regalos, disable_web_preview=True)
 
+    enviar_telegram(mensaje_regalos, disable_web_preview=True)
 def enviar_regalitos_guacharo():
     ahora = datetime.now()
     fecha_str = ahora.strftime("%d/%m/%Y")
