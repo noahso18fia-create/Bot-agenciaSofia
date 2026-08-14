@@ -117,7 +117,6 @@ def home():
         "👉 <a href='/test/regalos'>Probar Regalos del Día</a><br>"
         "👉 <a href='/test/saludo'>Probar Saludo Matutino</a><br>"
         "👉 <a href='/test/estudio_manana'>Probar Análisis de las 8 AM</a><br>"
-        "👉 <a href='/test/estudio_mediodia'>Probar Análisis del Mediodía</a><br>"
         "👉 <a href='/test/estudio_tarde'>Probar Análisis de la Tarde</a><br>"
         "👉 <a href='/test/bcv'>Probar Tasa Oficial BCV</a><br>"
         "👉 <a href='/test/sorteo'>Probar Cierre de Sorteo (Min 25/55)</a><br>"
@@ -161,7 +160,6 @@ def test_saludo():
 def test_estudio_estudio_manana():
     enviar_estudio_8am()
     return "Prueba de Análisis de las 8 AM ejecutada."
-
 
 @app.route('/test/estudio_tarde')
 def test_estudio_tarde():
@@ -370,7 +368,7 @@ def generar_imagen_piramide():
 
     draw.rectangle([720, 290, 960, panel_bottom], fill=color_panel, outline=color_morado, width=2)
     draw.text((840, 315), "★ SUMA ★", fill=color_dorado, anchor="mm", font=font_data)
-    draw.text((840, 350), "POR FILA", fill=color_dorado, anchor="mm", font=font_data)
+    draw.text((840, 350), "POR FILA", fill=color_dorado_claro, anchor="mm", font=font_data)
     
     y_suma_pos = 400
     for idx, f in enumerate(filas):
@@ -430,7 +428,6 @@ def enviar_regalos_diarios():
     ahora = datetime.now()
     fecha_str = ahora.strftime("%d/%m/%Y")
 
-    # Aleatorio independiente de Agencia FyD
     seed_val = int(ahora.strftime("%Y%m%d")) + 48291
     rnd = random.Random(seed_val)
 
@@ -461,7 +458,6 @@ def enviar_regalitos_guacharo():
     ahora = datetime.now()
     fecha_str = ahora.strftime("%d/%m/%Y")
 
-    # Aleatorio independiente para Guácharo de Agencia Sofia
     seed_val = int(ahora.strftime("%Y%m%d")) + 91357
     rnd = random.Random(seed_val)
 
@@ -512,7 +508,6 @@ def enviar_regalitos_guacharo():
 
     enviar_telegram(mensaje, disable_web_preview=True)
 
-
 def obtener_animales_salidos_actuales():
     salidos = set()
     try:
@@ -552,7 +547,6 @@ def enviar_combinacion_diaria():
     if len(disponibles) < 7:
         disponibles = ANIMALES_POOL.copy()
 
-    # Aleatorio independiente de Agencia FyD
     seed_val = int(ahora.strftime("%Y%m%d%H%M%S")) + 63847
     rnd = random.Random(seed_val)
 
@@ -600,8 +594,6 @@ def enviar_combinacion_diaria():
 
     enviar_telegram(mensaje, disable_web_preview=True)
 
-
-
 def enviar_estudio_8am():
     ahora = datetime.now()
 
@@ -615,7 +607,6 @@ def enviar_estudio_8am():
     if len(disponibles) < 2:
         disponibles = ANIMALES_POOL.copy()
 
-    # Aleatorio independiente para el análisis de Sofia
     seed_val = int(ahora.strftime("%Y%m%d%H%M")) + 72461
     rnd = random.Random(seed_val)
 
@@ -642,7 +633,6 @@ def enviar_estudio_8am():
 
     enviar_telegram(mensaje, disable_web_preview=True)
 
-
 def enviar_estudio_tarde():
     ahora = datetime.now()
 
@@ -656,7 +646,6 @@ def enviar_estudio_tarde():
     if len(disponibles) < 2:
         disponibles = ANIMALES_POOL.copy()
 
-    # Aleatorio independiente para el análisis de la tarde
     seed_val = int(ahora.strftime("%Y%m%d%H%M")) + 94673
     rnd = random.Random(seed_val)
 
@@ -683,8 +672,6 @@ def enviar_estudio_tarde():
     )
 
     enviar_telegram(mensaje, disable_web_preview=True)
-
-
 
 def enviar_saludo_matutino():
     enviar_telegram(
@@ -766,7 +753,11 @@ def verificar_y_enviar_resultados_individuales():
             return
 
         soup = BeautifulSoup(respuesta.text, 'html.parser')
-        tarjetas = soup.find_all(['div', 'article', 'section'], class_=re.compile(r'card|box|item|lotto|result', re.IGNORECASE))
+        
+        # Búsqueda ampliada para garantizar que agarre los bloques de la página web
+        tarjetas = soup.find_all(['div', 'article', 'section', 'ul', 'li'], class_=re.compile(r'card|box|item|lotto|result|col|row|block', re.IGNORECASE))
+        if not tarjetas:
+            tarjetas = soup.find_all('div')
 
         hubo_cambios = False
         nuevos_para_guardar = set(enviados_hoy)
@@ -826,7 +817,6 @@ def verificar_y_enviar_resultados_individuales():
 
                 numero = resultado.split("-")[0].strip().zfill(2)
 
-                # VALIDACIÓN DE ACIERTOS CON FILTRO DE HORA ESTRICTO
                 if numero in RECOMENDADOS_HOY and numero not in ACIERTOS_HOY:
                     info_rec = RECOMENDADOS_HOY[numero]
                     hora_emision = info_rec["hora_emision"]
@@ -886,8 +876,8 @@ def verificar_minuto():
     ahora = datetime.now()
      
     hora_actual_minutos = ahora.hour * 60 + ahora.minute
-    inicio_minutos = 7 * 60 + 25   # 07:25 AM
-    fin_minutos = 19 * 60 + 55     # 07:55 PM
+    inicio_minutos = 7 * 60 + 25
+    fin_minutos = 19 * 60 + 55
 
     if not (inicio_minutos <= hora_actual_minutos <= fin_minutos):
         return
@@ -911,7 +901,9 @@ def cmd_resumen(message):
             return
 
         soup = BeautifulSoup(respuesta.text, 'html.parser')
-        tarjetas = soup.find_all(['div', 'article', 'section'], class_=re.compile(r'card|box|item|lotto|result', re.IGNORECASE))
+        tarjetas = soup.find_all(['div', 'article', 'section', 'ul', 'li'], class_=re.compile(r'card|box|item|lotto|result|col|row|block', re.IGNORECASE))
+        if not tarjetas:
+            tarjetas = soup.find_all('div')
 
         resumen_por_loterias = {}
 
