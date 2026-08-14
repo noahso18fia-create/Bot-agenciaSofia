@@ -69,7 +69,8 @@ TRADUCCION_LOTERIAS = {
     "L.CH": "LOTTO CHAIMA",
     "MJ.M": "MONJE MILLONARIO"
 }
-  HEADER_Sofia = (
+
+HEADER_Sofia = (
     "🎯 *AGENCIA SOFIA* 🎯\n"
     "━━━━━━━━━━━━━━━━━━\n"
     "🎲 *{nombre_loteria}* 🎲\n"
@@ -77,7 +78,6 @@ TRADUCCION_LOTERIAS = {
     "🐾 *Resultado:* `{resultado}`\n"
     "━━━━━━━━━━━━━━━━━━\n"
     "📲 *04163199157*"
-)
 )
 
 app = Flask('')
@@ -557,11 +557,12 @@ def guardar_registros(enviados_set):
 def verificar_y_enviar_resultados_individuales():
     ahora = datetime.now()
 
-  inicio = 7 * 60 + 30       # 07:30 AM
+    minutos_actuales = ahora.hour * 60 + ahora.minute
+    inicio = 7 * 60 + 30       # 07:30 AM
 
-# No trabajar antes de las 7:30 AM
-if minutos_actuales < inicio:
-    return
+    # No trabajar antes de las 7:30 AM
+    if minutos_actuales < inicio:
+        return
 
     enviados_hoy = cargar_registros()
 
@@ -945,8 +946,8 @@ def loop_bot():
     # Horario programado a las 12:01 AM para reiniciar las recomendaciones y conteo diario
     schedule.every().day.at("00:01").do(limpiar_recomendaciones_diarias)
     
-   schedule.every(30).seconds.do(verificar_y_enviar_resultados_individuales)
-   schedule.every(1).minutes.do(verificar_minuto)
+    schedule.every(30).seconds.do(verificar_y_enviar_resultados_individuales)
+    schedule.every(1).minutes.do(verificar_minuto)
 
     while True:
         schedule.run_pending()
