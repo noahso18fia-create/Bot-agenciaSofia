@@ -557,16 +557,11 @@ def guardar_registros(enviados_set):
 def verificar_y_enviar_resultados_individuales():
     ahora = datetime.now()
 
-    # ==========================================
-    # SOLO PUBLICAR RESULTADOS DESDE LAS 7:30 AM
-    # HASTA QUE TERMINE LA JORNADA
-    # ==========================================
-    minutos_actuales = ahora.hour * 60 + ahora.minute
-    inicio = 7 * 60 + 30       # 07:30 AM
-    fin = 20 * 60              # 08:00 PM
+  inicio = 7 * 60 + 30       # 07:30 AM
 
-    if minutos_actuales < inicio or minutos_actuales > fin:
-        return
+# No trabajar antes de las 7:30 AM
+if minutos_actuales < inicio:
+    return
 
     enviados_hoy = cargar_registros()
 
@@ -951,7 +946,7 @@ def loop_bot():
     schedule.every().day.at("00:01").do(limpiar_recomendaciones_diarias)
     
    schedule.every(30).seconds.do(verificar_y_enviar_resultados_individuales)
-    schedule.every(1).minutes.do(verificar_minuto)
+   schedule.every(1).minutes.do(verificar_minuto)
 
     while True:
         schedule.run_pending()
