@@ -554,13 +554,14 @@ def guardar_registros(enviados_set):
     except Exception as e:
         print(f"Error al guardar registros: {e}")
 
-def verificar_y_enviar_resultados_individuales():
+
+   def verificar_y_enviar_resultados_individuales():
     ahora = datetime.now()
 
     minutos_actuales = ahora.hour * 60 + ahora.minute
-    inicio = 7 * 60 + 30       # 07:30 AM
+    inicio = 7 * 60 + 30  # 07:30 AM
 
-    # No trabajar antes de las 7:30 AM
+    # No revisar antes de las 7:30 AM
     if minutos_actuales < inicio:
         return
 
@@ -591,8 +592,7 @@ def verificar_y_enviar_resultados_individuales():
             )
         )
 
-        nuevos_para_guardar = set(enviados_hoy)
-        hubo_cambios = False
+        resultados_actuales = {}
 
         for tarjeta in tarjetas:
 
@@ -677,11 +677,8 @@ def verificar_y_enviar_resultados_individuales():
                     break
 
             if (
-                "RULETA ROYAL"
-                in nombre_loteria_limpio.upper()
-                or
-                "RESULTADOS"
-                in nombre_loteria_limpio.upper()
+                "RULETA ROYAL" in nombre_loteria_limpio.upper()
+                or "RESULTADOS" in nombre_loteria_limpio.upper()
             ):
                 continue
 
@@ -739,7 +736,7 @@ def verificar_y_enviar_resultados_individuales():
                 ).upper()
 
                 # ==========================================
-                # ID ÚNICO DEL RESULTADO
+                # ID ÚNICO
                 # ==========================================
                 id_resultado = (
                     f"{nombre_loteria_ind}_"
@@ -747,49 +744,81 @@ def verificar_y_enviar_resultados_individuales():
                     f"{resultado}"
                 )
 
-                # ==========================================
-                # SI YA FUE ENVIADO, NO HACER NADA
-                # ==========================================
-                if id_resultado in enviados_hoy:
-                    continue
-
-                # ==========================================
-                # NUEVO RESULTADO → PUBLICAR
-                # ==========================================
-                hora_actual_str = datetime.now().strftime(
-                    "%I:%M %p"
+                # Guardamos todo lo que WinBig tiene actualmente
+                resultados_actuales[id_resultado] = (
+                    nombre_loteria_ind,
+                    hora_sorteo_str,
+                    resultado
                 )
 
-                mensaje = HEADER_Sofia.format(
-                    hora_str=hora_actual_str,
-                    nombre_loteria=nombre_loteria_ind,
-                    hora=hora_sorteo_str,
-                    resultado=resultado
-                )
+        # ==========================================
+        # PRIMERA REVISIÓN DEL DÍA
+        # ==========================================
+        # Si no hay registros todavía, significa que el bot
+        # acaba de comenzar. SOLO guarda lo que ya existe.
+        # NO manda ningún resultado anterior.
+        # ==========================================
 
-                mensaje += f"\n{ENLACE_CANAL}"
+        if not enviados_hoy:
 
-                print(
-                    f"📢 NUEVO RESULTADO: "
-                    f"{nombre_loteria_ind} | "
-                    f"{hora_sorteo_str} | "
-                    f"{resultado}"
-                )
+            print(
+                f"🟢 Primera revisión de WinBig: "
+                f"{len(resultados_actuales)} resultados encontrados."
+            )
 
-                enviar_telegram(mensaje)
+            guardar_registros(set(resultados_actuales.keys()))
 
-                # ==========================================
-                # GUARDAR INMEDIATAMENTE
-                # ==========================================
-                nuevos_para_guardar.add(id_resultado)
-                hubo_cambios = True
+            print(
+                "✅ Resultados existentes registrados. "
+                "NO se enviará ninguno."
+            )
 
-                guardar_registros(nuevos_para_guardar)
+            return
 
-                # Pequeña pausa para no saturar Telegram
-                time.sleep(1.5)
+        # ==========================================
+        # BUSCAR SOLAMENTE RESULTADOS NUEVOS
+        # ==========================================
 
-        if hubo_cambios:
+        nuevos_para_guardar = set(enviados_hoy)
+
+        for id_resultado, datos in resultados_actuales.items():
+
+            # Ya estaba registrado → NO enviar
+            if id_resultado in enviados_hoy:
+                continue
+
+            nombre_loteria_ind, hora_sorteo_str, resultado = datos
+
+            hora_actual_str = datetime.now().strftime(
+                "%I:%M %p"
+            )
+
+            mensaje = HEADER_Sofia.format(
+                hora_str=hora_actual_str,
+                nombre_loteria=nombre_loteria_ind,
+                hora=hora_sorteo_str,
+                resultado=resultado
+            )
+
+            mensaje += f"\n{ENLACE_CANAL}"
+
+            print(
+                f"📢 NUEVO RESULTADO: "
+                f"{nombre_loteria_ind} | "
+                f"{hora_sorteo_str} | "
+                f"{resultado}"
+            )
+
+            enviar_telegram(mensaje)
+
+            nuevos_para_guardar.add(id_resultado)
+
+            time.sleep(1.5)
+
+        # ==========================================
+        # GUARDAR REGISTROS
+        # ==========================================
+        if nuevos_para_guardar != enviados_hoy:
             guardar_registros(nuevos_para_guardar)
 
     except Exception as e:
