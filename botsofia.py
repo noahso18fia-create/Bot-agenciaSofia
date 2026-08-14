@@ -87,7 +87,6 @@ def home():
         f"¡El bot de resultados individuales de la <b>Agencia Sofia</b> está activo en el canal {CANAL}!<br><br>"
         "<b>Enlaces de prueba rápida (Test):</b><br>"
         "👉 <a href='/test/madrugada'>Probar Saludo de Madrugada</a><br>"
-        "👉 <a href='/test/efemeride'>Probar Efeméride y Dato Oculto del Día</a><br>"
         "👉 <a href='/test/piramide'>Probar Pirámide Numérica (Imagen)</a><br>"
         "👉 <a href='/test/regalos'>Probar Regalos del Día</a><br>"
         "👉 <a href='/test/saludo'>Probar Saludo Matutino</a><br>"
@@ -107,11 +106,6 @@ def test_madrugada():
     enviar_saludo_madrugada()
     return "Prueba de Saludo de Madrugada ejecutada."
 
-@app.route('/test/efemeride')
-def test_efemeride():
-    enviar_efemeride_dia()
-    return "Prueba de Efeméride y Dato Oculto ejecutada."
-
 @app.route('/test/piramide')
 def test_piramide():
     enviar_piramide_diaria()
@@ -128,7 +122,7 @@ def test_saludo():
     return "Prueba de Saludo Matutino ejecutada."
 
 @app.route('/test/estudio_manana')
-def test_estudio_estudio_manana():
+def test_estudio_manana():
     enviar_estudio_8am()
     return "Prueba de Análisis de las 8 AM ejecutada."
 
@@ -161,6 +155,7 @@ def test_cierre():
 def test_combinacion():
     enviar_combinacion_diaria()
     return "Prueba de Combinación Diaria ejecutada."
+
 
 @app.route('/test/forzar')
 def test_forzar():
@@ -203,65 +198,6 @@ def enviar_saludo_madrugada():
         "WHATSAPP: 04163199157",
         disable_web_preview=True
     )
-
-def enviar_efemeride_dia():
-    ahora = datetime.now()
-    mes_dia = ahora.strftime("%m-%d")
-    fecha_str = ahora.strftime("%d/%m/%Y")
-
-    efemerides_db = {
-        "01-01": ("Año Nuevo y el Día Mundial de la Paz", "01 - Carnero"),
-        "01-14": ("Día de la Divina Pastora", "12 - Caballo"),
-        "02-04": ("Día Mundial contra el Cáncer", "05 - León"),
-        "02-14": ("Día del Amor y la Amistad", "11 - Gato"),
-        "03-08": ("Día Internacional de la Mujer", "26 - Vaca"),
-        "03-22": ("Día Mundial del Agua", "0 - Delfin"),
-        "04-19": ("Día de la Declaración de Independencia", "09 - Águila"),
-        "04-22": ("Día Internacional de la Madre Tierra", "30 - Caimán"),
-        "05-01": ("Día del Trabajador", "18 - Burro"),
-        "05-10": ("Día de la Afrovenezolanidad", "13 - Mono"),
-        "06-05": ("Día Mundial del Medio Ambiente", "23 - Cebra"),
-        "06-24": ("Batalla de Carabobo", "12 - Caballo"),
-        "07-05": ("Día de la Independencia de Venezuela", "09 - Águila"),
-        "07-24": ("Natalicio del Libertador Simón Bolívar", "05 - León"),
-        "08-03": ("Día de la Bandera Nacional", "09 - Águila"),
-        "08-14": ("Día Mundial del Lagarto", "24 - Iguana"),
-        "08-25": ("Día del Peluquero", "16 - Oso"),
-        "09-08": ("Día de la Virgen del Valle", "33 - Pescado"),
-        "10-12": ("Día de la Resistencia Indígena", "14 - Paloma"),
-        "10-31": ("Día de la Canción Criolla y Halloween", "36 - Culebra"),
-        "11-18": ("Día de la Chinita", "21 - Gallo"),
-        "12-24": ("Nochebuena", "27 - Perro"),
-        "12-31": ("Fin de Año y la Quema del Año Viejo", "28 - Zamuro")
-    }
-
-    if mes_dia in efemerides_db:
-        evento, animal_sugerido = efemerides_db[mes_dia]
-    else:
-        seed_val = int(ahora.strftime("%m%d"))
-        rnd = random.Random(seed_val)
-        eventos_comunes = [
-            ("Día de la buena vibra y la suerte en los negocios", rnd.choice(ANIMALES_POOL)),
-            ("Día de activar la suerte y reventar la pizarra", rnd.choice(ANIMALES_POOL)),
-            ("Día de buscar el billete y cobrar temprano", rnd.choice(ANIMALES_POOL)),
-            ("Día de la gran jugada maestra", rnd.choice(ANIMALES_POOL))
-        ]
-        evento, animal_sugerido = rnd.choice(eventos_comunes)
-
-    num_oculto = animal_sugerido.split(" - ")[0].zfill(2)
-    RECOMENDADOS_HOY[num_oculto] = {"motivo": f"✨ Dato Oculto por Efeméride ({evento})", "hora_emision": ahora}
-
-    mensaje = (
-        "🎯 *AGENCIA SOFIA* 🎯\n"
-        f"📅 *{fecha_str}* — ¡Buenos días mi gente!\n\n"
-        f"💡 *¿Sabías qué se celebra hoy?* Hoy se conmemora el *{evento}* 🌟.\n\n"
-        "Y como la suerte tiene sus señales, el sistema detectó un **dato oculto** directo de esta celebración para asegurar las jugadas:\n\n"
-        f"🔥 *Dato Oculto / Fijo del Día:* `{animal_sugerido}`\n\n"
-        "📲 *WHATSAPP:* 04163199157\n"
-        f"{ENLACE_CANAL}\n\n"
-        "¡A cobrar temprano con la energía de hoy! 🍀✨"
-    )
-    enviar_telegram(mensaje, disable_web_preview=True)
 
 def generar_imagen_piramide():
     ahora = datetime.now()
@@ -698,6 +634,7 @@ def verificar_y_enviar_resultados_individuales():
                         dt_sorteo = datetime.strptime(hora_limpia, "%I:%M%p")
                         hora_sorteo_dt = datetime.now().replace(hour=dt_sorteo.hour, minute=dt_sorteo.minute, second=0, microsecond=0)
                         
+                        # Solo celebra si el sorteo ocurrió DESPUÉS de la emisión del análisis/combinación
                         if hora_sorteo_dt >= hora_emision:
                             mensaje = (
                                 "🎉🎉 *¡ACERTAMOS!* 🎉🎉\n\n"
@@ -860,7 +797,7 @@ def cmd_resumen(message):
 
         if len(texto_final) > 4000:
             for x in range(0, len(texto_final), 4000):
-            	bot.send_message(message.chat.id, texto_final[x:x+4000], parse_mode="Markdown")
+                bot.send_message(message.chat.id, texto_final[x:x+4000], parse_mode="Markdown")
         else:
             bot.send_message(message.chat.id, texto_final, parse_mode="Markdown")
 
@@ -869,10 +806,9 @@ def cmd_resumen(message):
         bot.reply_to(message, f"⚠️ Error técnico: {str(e)}")
 
 def loop_bot():
-    schedule.every().day.at("07:00").do(enviar_efemeride_dia)
     schedule.every().day.at("06:31").do(enviar_piramide_diaria)
     schedule.every().day.at("06:45").do(enviar_regalos_diarios)
-    schedule.every().day.at("07:30").do(enviar_saludo_matutino)
+    schedule.every().day.at("07:00").do(enviar_saludo_matutino)
      
     schedule.every().day.at("08:15").do(enviar_estudio_8am)
     schedule.every().day.at("12:15").do(enviar_estudio_mediodia)
@@ -881,10 +817,12 @@ def loop_bot():
     schedule.every().day.at("15:30").do(enviar_tasa_dolar)
     schedule.every().day.at("20:00").do(enviar_mensaje_cierre)
     
+    # Horario programado para las combinaciones automáticas diarias
     schedule.every().day.at("09:40").do(enviar_combinacion_diaria)
     schedule.every().day.at("13:30").do(enviar_combinacion_diaria)
     schedule.every().day.at("17:30").do(enviar_combinacion_diaria)
 
+    # Horario programado a las 12:01 AM para reiniciar las recomendaciones y conteo diario
     schedule.every().day.at("00:01").do(limpiar_recomendaciones_diarias)
     
     schedule.every(1).minutes.do(verificar_y_enviar_resultados_individuales)
