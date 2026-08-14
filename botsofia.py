@@ -1,4 +1,4 @@
-import os
+import oS
 # Forzar la zona horaria de Venezuela de forma segura para Windows y Linux
 os.environ['TZ'] = 'America/Caracas'
 try:
