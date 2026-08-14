@@ -4,3 +4,4 @@ beautifulsoup4
 schedule
 PyTelegramBotAPI
 urllib3
+pillow
