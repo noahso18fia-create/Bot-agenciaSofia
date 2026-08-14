@@ -1,5 +1,5 @@
-import oS
-# Forzar la zona horaria de Venezuela de forma segura para Windows y LinuX
+import os
+# Forzar la zona horaria de Venezuela de forma segura para Windows y Linux
 os.environ['TZ'] = 'America/Caracas'
 try:
     import time
@@ -30,7 +30,9 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # ==========================================
 # CONFIGURACIÓN DE CREDENCIALES Y ENLACES (Agencia Sofia)
 # ==========================================
-
+TOKEN = '8893057303:AAHi1D9GJEentjBJJB_6IdMNtSbQ2jxj7WQ'
+CANAL = '@agenciasofiaoficial'
+ENLACE_CANAL = 'https://t.me/agenciasofiaoficial'
 
 bot = telebot.TeleBot(TOKEN)
 
@@ -69,13 +71,12 @@ TRADUCCION_LOTERIAS = {
 }
 
 HEADER_Sofia = (
-    "🎯 *AGENCIA SOFIA* 🎯\n"
-    "━━━━━━━━━━━━━━━━━━\n"
+    "*AGENCIA SOFIA*\n"
+    "*RESULTADOS*\n\n"
     "🎲 *{nombre_loteria}* 🎲\n"
-    "🕐 *Hora:* {hora}\n"
-    "🐾 *Resultado:* `{resultado}`\n"
-    "━━━━━━━━━━━━━━━━━━\n"
-    "📲 *04163199157*"
+    "Hora: {hora}\n"
+    "Animalito: *{resultado}*\n\n"
+    "04163199157"
 )
 
 app = Flask('')
@@ -86,6 +87,7 @@ def home():
         f"¡El bot de resultados individuales de la <b>Agencia Sofia</b> está activo en el canal {CANAL}!<br><br>"
         "<b>Enlaces de prueba rápida (Test):</b><br>"
         "👉 <a href='/test/madrugada'>Probar Saludo de Madrugada</a><br>"
+        "👉 <a href='/test/efemeride'>Probar Efeméride y Dato Oculto del Día</a><br>"
         "👉 <a href='/test/piramide'>Probar Pirámide Numérica (Imagen)</a><br>"
         "👉 <a href='/test/regalos'>Probar Regalos del Día</a><br>"
         "👉 <a href='/test/saludo'>Probar Saludo Matutino</a><br>"
@@ -105,6 +107,11 @@ def test_madrugada():
     enviar_saludo_madrugada()
     return "Prueba de Saludo de Madrugada ejecutada."
 
+@app.route('/test/efemeride')
+def test_efemeride():
+    enviar_efemeride_dia()
+    return "Prueba de Efeméride y Dato Oculto ejecutada."
+
 @app.route('/test/piramide')
 def test_piramide():
     enviar_piramide_diaria()
@@ -121,7 +128,7 @@ def test_saludo():
     return "Prueba de Saludo Matutino ejecutada."
 
 @app.route('/test/estudio_manana')
-def test_estudio_manana():
+def test_estudio_estudio_manana():
     enviar_estudio_8am()
     return "Prueba de Análisis de las 8 AM ejecutada."
 
@@ -154,7 +161,6 @@ def test_cierre():
 def test_combinacion():
     enviar_combinacion_diaria()
     return "Prueba de Combinación Diaria ejecutada."
-
 
 @app.route('/test/forzar')
 def test_forzar():
@@ -197,6 +203,65 @@ def enviar_saludo_madrugada():
         "WHATSAPP: 04163199157",
         disable_web_preview=True
     )
+
+def enviar_efemeride_dia():
+    ahora = datetime.now()
+    mes_dia = ahora.strftime("%m-%d")
+    fecha_str = ahora.strftime("%d/%m/%Y")
+
+    efemerides_db = {
+        "01-01": ("Año Nuevo y el Día Mundial de la Paz", "01 - Carnero"),
+        "01-14": ("Día de la Divina Pastora", "12 - Caballo"),
+        "02-04": ("Día Mundial contra el Cáncer", "05 - León"),
+        "02-14": ("Día del Amor y la Amistad", "11 - Gato"),
+        "03-08": ("Día Internacional de la Mujer", "26 - Vaca"),
+        "03-22": ("Día Mundial del Agua", "0 - Delfin"),
+        "04-19": ("Día de la Declaración de Independencia", "09 - Águila"),
+        "04-22": ("Día Internacional de la Madre Tierra", "30 - Caimán"),
+        "05-01": ("Día del Trabajador", "18 - Burro"),
+        "05-10": ("Día de la Afrovenezolanidad", "13 - Mono"),
+        "06-05": ("Día Mundial del Medio Ambiente", "23 - Cebra"),
+        "06-24": ("Batalla de Carabobo", "12 - Caballo"),
+        "07-05": ("Día de la Independencia de Venezuela", "09 - Águila"),
+        "07-24": ("Natalicio del Libertador Simón Bolívar", "05 - León"),
+        "08-03": ("Día de la Bandera Nacional", "09 - Águila"),
+        "08-14": ("Día Mundial del Lagarto", "24 - Iguana"),
+        "08-25": ("Día del Peluquero", "16 - Oso"),
+        "09-08": ("Día de la Virgen del Valle", "33 - Pescado"),
+        "10-12": ("Día de la Resistencia Indígena", "14 - Paloma"),
+        "10-31": ("Día de la Canción Criolla y Halloween", "36 - Culebra"),
+        "11-18": ("Día de la Chinita", "21 - Gallo"),
+        "12-24": ("Nochebuena", "27 - Perro"),
+        "12-31": ("Fin de Año y la Quema del Año Viejo", "28 - Zamuro")
+    }
+
+    if mes_dia in efemerides_db:
+        evento, animal_sugerido = efemerides_db[mes_dia]
+    else:
+        seed_val = int(ahora.strftime("%m%d"))
+        rnd = random.Random(seed_val)
+        eventos_comunes = [
+            ("Día de la buena vibra y la suerte en los negocios", rnd.choice(ANIMALES_POOL)),
+            ("Día de activar la suerte y reventar la pizarra", rnd.choice(ANIMALES_POOL)),
+            ("Día de buscar el billete y cobrar temprano", rnd.choice(ANIMALES_POOL)),
+            ("Día de la gran jugada maestra", rnd.choice(ANIMALES_POOL))
+        ]
+        evento, animal_sugerido = rnd.choice(eventos_comunes)
+
+    num_oculto = animal_sugerido.split(" - ")[0].zfill(2)
+    RECOMENDADOS_HOY[num_oculto] = {"motivo": f"✨ Dato Oculto por Efeméride ({evento})", "hora_emision": ahora}
+
+    mensaje = (
+        "🎯 *AGENCIA SOFIA* 🎯\n"
+        f"📅 *{fecha_str}* — ¡Buenos días mi gente!\n\n"
+        f"💡 *¿Sabías qué se celebra hoy?* Hoy se conmemora el *{evento}* 🌟.\n\n"
+        "Y como la suerte tiene sus señales, el sistema detectó un **dato oculto** directo de esta celebración para asegurar las jugadas:\n\n"
+        f"🔥 *Dato Oculto / Fijo del Día:* `{animal_sugerido}`\n\n"
+        "📲 *WHATSAPP:* 04163199157\n"
+        f"{ENLACE_CANAL}\n\n"
+        "¡A cobrar temprano con la energía de hoy! 🍀✨"
+    )
+    enviar_telegram(mensaje, disable_web_preview=True)
 
 def generar_imagen_piramide():
     ahora = datetime.now()
@@ -552,271 +617,120 @@ def guardar_registros(enviados_set):
     except Exception as e:
         print(f"Error al guardar registros: {e}")
 
-
-   def verificar_y_enviar_resultados_individuales():
-
-    enviados_hoy = 
-
+def verificar_y_enviar_resultados_individuales():
+    enviados_hoy = cargar_registros()
+     
     try:
-        headers = {
-            'User-Agent': 'Mozilla/5.0'
-        }
-
-        respuesta = requests.get(
-            URL_LOTERIA,
-            headers=headers,
-            timeout=15
-        )
-
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        respuesta = requests.get(URL_LOTERIA, headers=headers, timeout=15)
         if respuesta.status_code != 200:
-            print(f"⚠️ WinBig respondió con código {respuesta.status_code}")
             return
 
         soup = BeautifulSoup(respuesta.text, 'html.parser')
+        tarjetas = soup.find_all(['div', 'article', 'section'], class_=re.compile(r'card|box|item|lotto|result', re.IGNORECASE))
 
-        tarjetas = soup.find_all(
-            ['div', 'article', 'section'],
-            class_=re.compile(
-                r'card|box|item|lotto|result',
-                re.IGNORECASE
-            )
-        )
-
-        resultados_actuales = {}
+        hubo_cambios = False
+        nuevos_para_guardar = set(enviados_hoy)
 
         for tarjeta in tarjetas:
-
-            # ==========================================
-            # BUSCAR NOMBRE DE LA LOTERÍA
-            # ==========================================
             nombre_loteria = ""
-
-            posibles_titulos = tarjeta.find_all(
-                ['h1', 'h2', 'h3', 'h4', 'h5',
-                 'span', 'div', 'strong', 'b'],
-                class_=re.compile(
-                    r'title|header|name|lotto|text',
-                    re.IGNORECASE
-                )
-            )
-
+            posibles_titulos = tarjeta.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'span', 'div', 'strong', 'b'], class_=re.compile(r'title|header|name|lotto|text', re.IGNORECASE))
             for pt in posibles_titulos:
                 t_text = pt.get_text(" ", strip=True).upper()
-
-                if (
-                    t_text
-                    and len(t_text) > 2
-                    and not re.search(r'\d{1,2}:\d{2}', t_text)
-                    and "PENDIENTE" not in t_text
-                ):
-                    if t_text not in [
-                        "WINBIG",
-                        "RESULTADOS",
-                        "RESULTADOS ANIMALITOS",
-                        "ANIMALITOS"
-                    ]:
+                if t_text and len(t_text) > 2 and not re.search(r'\d{1,2}:\d{2}', t_text) and "PENDIENTE" not in t_text:
+                    if t_text not in ["WINBIG", "RESULTADOS", "RESULTADOS ANIMALITOS", "ANIMALITOS"]:
                         nombre_loteria = t_text
                         break
 
-            # ==========================================
-            # SEGUNDA FORMA DE ENCONTRAR EL NOMBRE
-            # ==========================================
             if not nombre_loteria:
-                lineas = [
-                    l.strip().upper()
-                    for l in tarjeta.get_text(
-                        "\n",
-                        strip=True
-                    ).split("\n")
-                    if l.strip()
-                ]
-
+                lineas = [l.strip().upper() for l in tarjeta.get_text("\n", strip=True).split("\n") if l.strip()]
                 for linea in lineas:
-                    if (
-                        len(linea) > 2
-                        and not re.search(r'\d{1,2}:\d{2}', linea)
-                        and "PENDIENTE" not in linea
-                        and "-" not in linea
-                    ):
-                        if linea not in [
-                            "RESULTADOS ANIMALITOS",
-                            "ANIMALITOS",
-                            "RESULTADOS"
-                        ]:
+                    if len(linea) > 2 and not re.search(r'\d{1,2}:\d{2}', linea) and "PENDIENTE" not in linea and "-" not in linea:
+                        if linea not in ["RESULTADOS ANIMALITOS", "ANIMALITOS", "RESULTADOS"]:
                             nombre_loteria = linea
                             break
 
             if not nombre_loteria or len(nombre_loteria) > 40:
                 continue
 
-            nombre_loteria_limpio = limpiar_texto(
-                nombre_loteria
-            )
+            nombre_loteria_limpio = limpiar_texto(nombre_loteria)
 
-            # ==========================================
-            # TRADUCIR ABREVIATURAS
-            # ==========================================
             nombre_loteria_ind = nombre_loteria_limpio
-
             for sigla, nombre_largo in TRADUCCION_LOTERIAS.items():
-                if (
-                    sigla in nombre_loteria_limpio.upper()
-                    or nombre_loteria_limpio.upper() == sigla
-                ):
+                if sigla in nombre_loteria_limpio.upper() or nombre_loteria_limpio.upper() == sigla:
                     nombre_loteria_ind = nombre_largo
                     break
 
-            if (
-                "RULETA ROYAL" in nombre_loteria_limpio.upper()
-                or "RESULTADOS" in nombre_loteria_limpio.upper()
-            ):
+            if "RULETA ROYAL" in nombre_loteria_limpio.upper() or "RESULTADOS" in nombre_loteria_limpio.upper():
                 continue
 
-            # ==========================================
-            # BUSCAR LOS SORTEOS
-            # ==========================================
-            slots_sorteo = tarjeta.find_all(
-                ['div', 'li', 'span', 'tr'],
-                class_=re.compile(
-                    r'item|slot|draw|row|col',
-                    re.IGNORECASE
-                )
-            )
-
+            slots_sorteo = tarjeta.find_all(['div', 'li', 'span', 'tr'], class_=re.compile(r'item|slot|draw|row|col', re.IGNORECASE))
             if not slots_sorteo:
                 slots_sorteo = [tarjeta]
 
             for slot in slots_sorteo:
-
-                texto_slot = slot.get_text(
-                    " ",
-                    strip=True
-                ).upper()
-
+                texto_slot = slot.get_text(" ", strip=True).upper()
                 if "PENDIENTE" in texto_slot:
                     continue
 
-                # ==========================================
-                # HORA DEL SORTEO
-                # ==========================================
-                match_h = re.search(
-                    r'\b(\d{1,2}:\d{2}\s*(?:AM|PM))\b',
-                    texto_slot
-                )
-
+                match_h = re.search(r'\b(\d{1,2}:\d{2}\s*(?:AM|PM))\b', texto_slot)
                 if not match_h:
                     continue
-
                 hora_sorteo_str = match_h.group(1).upper()
 
-                # ==========================================
-                # RESULTADO
-                # ==========================================
-                match_res = re.search(
-                    r'(\d{1,2}\s-\s[A-ZÁÉÍÓÚÑa-zñáéíóú]+'
-                    r'(?:\s+[A-ZÁÉÍÓÚÑa-zñáéíóú]+)?)',
-                    texto_slot
-                )
-
+                match_res = re.search(r'(\d{1,2}\s-\s[A-ZÁÉÍÓÚÑa-zñáéíóú]+(?:\s+[A-ZÁÉÍÓÚÑa-zñáéíóú]+)?)', texto_slot)
                 if not match_res:
                     continue
 
-                resultado = limpiar_texto(
-                    match_res.group(1)
-                ).upper()
+                resultado = limpiar_texto(match_res.group(1)).upper()
+                CONTEO_ANIMALES_HOY[resultado] = CONTEO_ANIMALES_HOY.get(resultado, 0) + 1
 
-                # ==========================================
-                # ID ÚNICO
-                # ==========================================
-                id_resultado = (
-                    f"{nombre_loteria_ind}_"
-                    f"{hora_sorteo_str}_"
-                    f"{resultado}"
-                )
+                numero = resultado.split("-")[0].strip().zfill(2)
 
-                # Guardamos todo lo que WinBig tiene actualmente
-                resultados_actuales[id_resultado] = (
-                    nombre_loteria_ind,
-                    hora_sorteo_str,
-                    resultado
-                )
+                # VALIDACIÓN DE ACIERTOS CON FILTRO DE HORA ESTRICTO
+                if numero in RECOMENDADOS_HOY and numero not in ACIERTOS_HOY:
+                    info_rec = RECOMENDADOS_HOY[numero]
+                    hora_emision = info_rec["hora_emision"]
+                    
+                    try:
+                        hora_limpia = hora_sorteo_str.replace(" ", "")
+                        dt_sorteo = datetime.strptime(hora_limpia, "%I:%M%p")
+                        hora_sorteo_dt = datetime.now().replace(hour=dt_sorteo.hour, minute=dt_sorteo.minute, second=0, microsecond=0)
+                        
+                        if hora_sorteo_dt >= hora_emision:
+                            mensaje = (
+                                "🎉🎉 *¡ACERTAMOS!* 🎉🎉\n\n"
+                                f"✅ {info_rec['motivo']}\n\n"
+                                f"🎯 *{resultado}*\n"
+                                f"🎲 {nombre_loteria_ind}\n"
+                                f"🕒 {hora_sorteo_str}\n\n"
+                                f"🍀 *¡Felicidades a todos los que confiaron en Agencia Sofia!*\n"
+                                f"{ENLACE_CANAL}"
+                            )
+                            enviar_telegram(mensaje)
+                            ACIERTOS_HOY.add(numero)
+                    except Exception as err:
+                        print(f"Error evaluando hora de acierto: {err}")
 
-        # ==========================================
-        # PRIMERA REVISIÓN DEL DÍA
-        # ==========================================
-        # Si no hay registros todavía, significa que el bot
-        # acaba de comenzar. SOLO guarda lo que ya existe.
-        # NO manda ningún resultado anterior.
-        # ==========================================
+                id_resultado = f"{nombre_loteria_ind}_{hora_sorteo_str}_{resultado}"
 
-        if not enviados_hoy:
+                if id_resultado not in enviados_hoy:
+                    mensaje = HEADER_Sofia.format(
+                        nombre_loteria=nombre_loteria_ind,
+                        hora=hora_sorteo_str,
+                        resultado=resultado
+                    ) + f"\n{ENLACE_CANAL}"
+                    
+                    enviar_telegram(mensaje)
+                    nuevos_para_guardar.add(id_resultado)
+                    hubo_cambios = True
+                    time.sleep(1.5)
 
-            print(
-                f"🟢 Primera revisión de WinBig: "
-                f"{len(resultados_actuales)} resultados encontrados."
-            )
-
-            guardar_registros(set(resultados_actuales.keys()))
-
-            print(
-                "✅ Resultados existentes registrados. "
-                "NO se enviará ninguno."
-            )
-
-            return
-
-        # ==========================================
-        # BUSCAR SOLAMENTE RESULTADOS NUEVOS
-        # ==========================================
-
-        nuevos_para_guardar = set(enviados_hoy)
-
-        for id_resultado, datos in resultados_actuales.items():
-
-            # Ya estaba registrado → NO enviar
-            if id_resultado in enviados_hoy:
-                continue
-
-            nombre_loteria_ind, hora_sorteo_str, resultado = datos
-
-            hora_actual_str = datetime.now().strftime(
-                "%I:%M %p"
-            )
-
-            mensaje = HEADER_Sofia.format(
-                hora_str=hora_actual_str,
-                nombre_loteria=nombre_loteria_ind,
-                hora=hora_sorteo_str,
-                resultado=resultado
-            )
-
-            mensaje += f"\n{ENLACE_CANAL}"
-
-            print(
-                f"📢 NUEVO RESULTADO: "
-                f"{nombre_loteria_ind} | "
-                f"{hora_sorteo_str} | "
-                f"{resultado}"
-            )
-
-            enviar_telegram(mensaje)
-
-            nuevos_para_guardar.add(id_resultado)
-
-            time.sleep(1.5)
-
-        # ==========================================
-        # GUARDAR REGISTROS
-        # ==========================================
-        if nuevos_para_guardar != enviados_hoy:
+        if hubo_cambios:
             guardar_registros(nuevos_para_guardar)
 
     except Exception as e:
-        print(
-            f"❌ Error al verificar resultados "
-            f"individuales: {e}"
-        )
-        traceback.print_exc()
+        print(f"Error al verificar resultados individuales: {e}")
 
 ultimo_aviso_minuto = ""
 
@@ -937,7 +851,7 @@ def cmd_resumen(message):
 
         if len(texto_final) > 4000:
             for x in range(0, len(texto_final), 4000):
-                bot.send_message(message.chat.id, texto_final[x:x+4000], parse_mode="Markdown")
+            	bot.send_message(message.chat.id, texto_final[x:x+4000], parse_mode="Markdown")
         else:
             bot.send_message(message.chat.id, texto_final, parse_mode="Markdown")
 
@@ -946,9 +860,10 @@ def cmd_resumen(message):
         bot.reply_to(message, f"⚠️ Error técnico: {str(e)}")
 
 def loop_bot():
+    schedule.every().day.at("07:00").do(enviar_efemeride_dia)
     schedule.every().day.at("06:31").do(enviar_piramide_diaria)
     schedule.every().day.at("06:45").do(enviar_regalos_diarios)
-    schedule.every().day.at("07:00").do(enviar_saludo_matutino)
+    schedule.every().day.at("07:30").do(enviar_saludo_matutino)
      
     schedule.every().day.at("08:15").do(enviar_estudio_8am)
     schedule.every().day.at("12:15").do(enviar_estudio_mediodia)
@@ -957,15 +872,13 @@ def loop_bot():
     schedule.every().day.at("15:30").do(enviar_tasa_dolar)
     schedule.every().day.at("20:00").do(enviar_mensaje_cierre)
     
-    # Horario programado para las combinaciones automáticas diarias
     schedule.every().day.at("09:40").do(enviar_combinacion_diaria)
     schedule.every().day.at("13:30").do(enviar_combinacion_diaria)
     schedule.every().day.at("17:30").do(enviar_combinacion_diaria)
 
-    # Horario programado a las 12:01 AM para reiniciar las recomendaciones y conteo diario
     schedule.every().day.at("00:01").do(limpiar_recomendaciones_diarias)
     
-    schedule.every(30).seconds.do(verificar_y_enviar_resultados_individuales)
+    schedule.every(1).minutes.do(verificar_y_enviar_resultados_individuales)
     schedule.every(1).minutes.do(verificar_minuto)
 
     while True:
