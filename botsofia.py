@@ -1,6 +1,3 @@
-print("🚀 SOFÍA: EL ARCHIVO SÍ ESTÁ ARRANCANDO")
-
-import os
 import os
 # Forzar la zona horaria de Venezuela de forma segura para Windows y Linux
 os.environ['TZ'] = 'America/Caracas'
@@ -23,7 +20,6 @@ from datetime import datetime
 import random
 import json
 import telebot
-import traceback
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 
@@ -33,9 +29,9 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # ==========================================
 # CONFIGURACIÓN DE CREDENCIALES Y ENLACES (Agencia Sofía)
 # ==========================================
-TOKEN = '8893057303:AAHi1D9GJEentjBJJB_6IdMNtSbQ2jxj7WQ'
-CANAL = '@agenciasofiaoficial'                
-ENLACE_CANAL = 'https://t.me/agenciasofiaoficial'
+TOKEN = 'TU_TOKEN_DE_TELEGRAM_AQUI'  # Reemplaza con el token del bot de Sofía
+CANAL = '@agenciasofia'                # Reemplaza con el canal de Sofía
+ENLACE_CANAL = 'https://t.me/tu_enlace_de_invitacion' # Reemplaza con el enlace de tu canal
 
 bot = telebot.TeleBot(TOKEN)
 
@@ -99,8 +95,7 @@ def home():
         "👉 <a href='/test/bcv'>Probar Tasa Oficial BCV</a><br>"
         "👉 <a href='/test/sorteo'>Probar Cierre de Sorteo (Min 25/55)</a><br>"
         "👉 <a href='/test/cierre'>Probar Cierre de Jornada (8:00 PM)</a><br>"
-        "👉 <a href='/test/combinacion'>Probar Combinación Diaria</a><br>"
-        "👉 <a href='/test/resumen_repetidos'>Probar Resumen de Repetidos</a>"
+        "👉 <a href='/test/combinacion'>Probar Combinación Diaria</a>"
     )
 
 # --- RUTAS DE PRUEBA MANUAL (TESTS) ---
@@ -159,7 +154,6 @@ def test_combinacion():
     enviar_combinacion_diaria()
     return "Prueba de Combinación Diaria ejecutada."
 
-
 @app.route('/test/forzar')
 def test_forzar():
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
@@ -193,20 +187,6 @@ def limpiar_recomendaciones_diarias():
     RECOMENDADOS_HOY.clear()
     ACIERTOS_HOY.clear()
     CONTEO_ANIMALES_HOY.clear()
-
-
-def enviar_mensaje_automatico():
-    global ULTIMO_INDICE_MENSAJE
-    if not MENSAJES_AUTOMATICOS:
-        return
-    
-    indice = random.randint(0, len(MENSAJES_AUTOMATICOS) - 1)
-    if len(MENSAJES_AUTOMATICOS) > 1:
-        while indice == ULTIMO_INDICE_MENSAJE:
-            indice = random.randint(0, len(MENSAJES_AUTOMATICOS) - 1)
-            
-    ULTIMO_INDICE_MENSAJE = indice
-    enviar_telegram(MENSAJES_AUTOMATICOS[indice], disable_web_preview=True)
 
 def enviar_saludo_madrugada():
     enviar_telegram(
@@ -328,7 +308,7 @@ def generar_imagen_piramide():
     draw.text((img_width // 2, box_top + 115), f"📌 {d2}", fill=color_blanco, anchor="mm", font=font_data)
 
     footer_y = 955
-    draw.text((img_width // 2, footer_y), "WHATSAPP: 04249611372", fill=color_dorado_claro, anchor="mm", font=font_sub)
+    draw.text((img_width // 2, footer_y), "WHATSAPP: 04163199157", fill=color_dorado_claro, anchor="mm", font=font_sub)
 
     bio = BytesIO()
     bio.name = 'piramide_sofia.png'
@@ -343,7 +323,7 @@ def enviar_piramide_diaria():
         files = {'photo': foto_bio}
         data = {
             'chat_id': CANAL,
-            'caption': f"📢 *REPORTE TÁCTICO - LA PIRÁMIDE*\n\nWHATSAPP: 04249611372\n{ENLACE_CANAL}",
+            'caption': f"📢 *REPORTE TÁCTICO - LA PIRÁMIDE*\n\nWHATSAPP: 04163199157\n{ENLACE_CANAL}",
             'parse_mode': 'Markdown'
         }
         response = requests.post(url, data=data, files=files, timeout=15)
@@ -451,7 +431,7 @@ def enviar_estudio_8am():
         "🔍 *ANÁLISIS TRAS EL SORTEO DE LAS 8:00 AM* 🔍\n\n"
         "¡Ya salieron los primeros animalitos! Evaluando la apertura de la pizarra y descartando lo ya jugado, la casa trae las recomendaciones probables para los siguientes sorteos:\n\n"
         f"🔥 *Regalitos recomendados:* `{analisis[0]}` y `{analisis[1]}`\n\n"
-        "📲 *WHATSAPP:* 041631991572\n"
+        "📲 *WHATSAPP:* 04163199157\n"
         f"{ENLACE_CANAL}"
     )
     enviar_telegram(mensaje, disable_web_preview=True)
@@ -528,7 +508,8 @@ def enviar_mensaje_cierre():
     enviar_telegram(
         "AGENCIA SOFÍA\n"
         "🌙 ¡FINAL DE JORNADA! 🌙\n"
-        "*¡Listo por hoy! 🚀 Que descansen y sueñen en grande. Mañana nos vemos tempranito con más suerte y nuevos retos. ¡Buenas noches! 🌟💤*",
+        "*¡Listo por hoy! 🚀 Que descansen y sueñen en grande. Mañana nos vemos tempranito con más suerte y nuevos retos. ¡Buenas noches! 🌟💤*\n"
+        "WHATSAPP: 04163199157",
         disable_web_preview=True
     )
 
@@ -536,7 +517,8 @@ def enviar_aviso_cierre_sorteo():
     enviar_telegram(
         "🛑 *¡ATENCIÓN!* 🛑\n\n"
         "El tiempo de jugadas ha terminado por este sorteo en la **AGENCIA SOFÍA**.\n\n"
-        "🤞 ¡Cruzamos los dedos por ti, mucha suerte en tus apuestas! 🎲🔥",
+        "🤞 ¡Cruzamos los dedos por ti, mucha suerte en tus apuestas! 🎲🔥\n"
+        "WHATSAPP: 04163199157",
         disable_web_preview=True
     )
 
@@ -792,7 +774,7 @@ def cmd_resumen(message):
                     texto_final += f"  {item}\n"
                 texto_final += "\n"
 
-        texto_final += f"📲 *WHATSAPP:* 04249611372\n{ENLACE_CANAL}"
+        texto_final += f"📲 *WHATSAPP:* 04163199157\n{ENLACE_CANAL}"
 
         if len(texto_final) > 4000:
             for x in range(0, len(texto_final), 4000):
@@ -813,9 +795,9 @@ def loop_bot():
     schedule.every().day.at("12:15").do(enviar_estudio_mediodia)
     schedule.every().day.at("16:15").do(enviar_estudio_tarde)
     
-    schedule.every().day.at("18:30").do(enviar_tasa_dolar)
+    schedule.every().day.at("15:30").do(enviar_tasa_dolar)
     schedule.every().day.at("20:00").do(enviar_mensaje_cierre)
-  
+    
     schedule.every().day.at("09:40").do(enviar_combinacion_diaria)
     schedule.every().day.at("13:30").do(enviar_combinacion_diaria)
     schedule.every().day.at("17:30").do(enviar_combinacion_diaria)
