@@ -458,32 +458,60 @@ def enviar_regalitos_guacharo():
     ahora = datetime.now()
     fecha_str = ahora.strftime("%d/%m/%Y")
 
-    # Selecciona 5 animales únicamente del listado de Guácharo Activo.
-    # La semilla diaria hace que sean estables durante el día y cambien al día siguiente.
+    # ==========================================
+    # REGALITOS EXCLUSIVOS - GUÁCHARO ACTIVO
+    # ==========================================
+    # Semilla diaria: los 5 regalitos se mantienen
+    # iguales durante todo el día y cambian mañana.
     seed_val = int(ahora.strftime("%Y%m%d")) + 7575
     rnd = random.Random(seed_val)
+
+    # Seleccionar exactamente 5 animales diferentes
     regalitos = rnd.sample(ANIMALES_GUACHARO, 5)
 
-    # Se registran como recomendaciones para poder detectar aciertos posteriormente.
+    # Registrar los números como recomendaciones
     for animal in regalitos:
-        numero = animal.split(" - ")[0].zfill(2)
+        partes = animal.split(" - ", 1)
+        numero = partes[0].strip()
+
+        # Normalizar 0 -> 00 y números de 1 dígito -> 01, 02...
+        if numero.isdigit():
+            numero = f"{int(numero):02d}"
+
         RECOMENDADOS_HOY[numero] = {
             "motivo": "🦜 Regalito del Día - Guácharo Activo",
             "hora_emision": ahora
         }
 
+    # Normalizar presentación de cada regalito
+    regalos_formateados = []
+
+    for animal in regalitos:
+        partes = animal.split(" - ", 1)
+
+        if len(partes) == 2:
+            numero = partes[0].strip()
+            nombre = partes[1].strip()
+
+            if numero.isdigit():
+                numero = f"{int(numero):02d}"
+
+            regalos_formateados.append(f"{numero} - {nombre}")
+        else:
+            regalos_formateados.append(animal)
+
     mensaje = (
-        "🎁 *REGALITOS DEL DÍA* 🎁\\n"
-        "🦜 *GUÁCHARO ACTIVO* 🦜\\n"
-        f"📅 Fecha: {fecha_str}\\n\\n"
-        "🌟 *1er Regalito:* " + regalitos[0] + "\\n"
-        "🌟 *2do Regalito:* " + regalitos[1] + "\\n"
-        "🌟 *3er Regalito:* " + regalitos[2] + "\\n"
-        "🌟 *4to Regalito:* " + regalitos[3] + "\\n"
-        "🌟 *5to Regalito:* " + regalitos[4] + "\\n\\n"
-        "🦜 *Datos seleccionados exclusivamente del listado Guácharo Activo 00/0 al 75.*\\n\\n"
-        "📲 *WHATSAPP:* 04163199157\\n"
-        f"{ENLACE_CANAL}\\n\\n"
+        "🎁 *REGALITOS DEL DÍA* 🎁\n"
+        "🦜 *GUÁCHARO ACTIVO* 🦜\n"
+        f"📅 Fecha: {fecha_str}\n\n"
+        f"🌟 *1er Regalito:* {regalos_formateados[0]}\n"
+        f"🌟 *2do Regalito:* {regalos_formateados[1]}\n"
+        f"🌟 *3er Regalito:* {regalos_formateados[2]}\n"
+        f"🌟 *4to Regalito:* {regalos_formateados[3]}\n"
+        f"🌟 *5to Regalito:* {regalos_formateados[4]}\n\n"
+        "🦜 *Datos seleccionados exclusivamente del listado Guácharo Activo 00 al 75.*\n\n"
+        "📲 *WHATSAPP:* 04163199157\n"
+        f"{ENLACE_CANAL}\n\n"
         "🍀 ¡Mucha suerte en tus jugadas!"
     )
 
