@@ -1,5 +1,5 @@
 import oS
-# Forzar la zona horaria de Venezuela de forma segura para Windows y Linux
+# Forzar la zona horaria de Venezuela de forma segura para Windows y LinuX
 os.environ['TZ'] = 'America/Caracas'
 try:
     import time
