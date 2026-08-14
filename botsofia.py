@@ -59,6 +59,31 @@ ANIMALES_POOL = [
     "35 - Jirafa", "36 - Culebra"
 ]
 
+# ==========================================
+# ANIMALES GUÁCHARO ACTIVO (00/0 AL 75)
+# ==========================================
+ANIMALES_GUACHARO = [
+    "00 - Ballena", "01 - Carnero", "02 - Toro", "03 - Ciempiés",
+    "04 - Alacrán", "05 - León", "06 - Rana", "07 - Perico",
+    "08 - Ratón", "09 - Águila", "10 - Tigre", "11 - Gato",
+    "12 - Caballo", "13 - Mono", "14 - Paloma", "15 - Zorro",
+    "16 - Oso", "17 - Pavo", "18 - Burro", "19 - Chivo",
+    "20 - Cochino", "21 - Gallo", "22 - Camello", "23 - Cebra",
+    "24 - Iguana", "25 - Gallina", "26 - Vaca", "27 - Perro",
+    "28 - Zamuro", "29 - Elefante", "30 - Caimán", "31 - Lapa",
+    "32 - Ardilla", "33 - Pescado", "34 - Venado", "35 - Jirafa",
+    "36 - Culebra", "37 - Tortuga", "38 - Búfalo", "39 - Lechuza",
+    "40 - Avispa", "41 - Canguro", "42 - Tucán", "43 - Mariposa",
+    "44 - Chigüire", "45 - Garza", "46 - Puma", "47 - Pavo Real",
+    "48 - Puercoespín", "49 - Pereza", "50 - Canario", "51 - Pelícano",
+    "52 - Pulpo", "53 - Caracol", "54 - Grillo", "55 - Oso Hormiguero",
+    "56 - Tiburón", "57 - Pato", "58 - Hormiga", "59 - Pantera",
+    "60 - Camaleón", "61 - Panda", "62 - Cachicamo", "63 - Cangrejo",
+    "64 - Gavilán", "65 - Araña", "66 - Lobo", "67 - Avestruz",
+    "68 - Jaguar", "69 - Conejo", "70 - Bisonte", "71 - Guacamaya",
+    "72 - Gorila", "73 - Hipopótamo", "74 - Turpial", "75 - Guácharo"
+]
+
 # Diccionario de abreviaturas oficiales solicitadas para resultados individuales
 TRADUCCION_LOTERIAS = {
     "L.A": "LOTTO ACTIVO",
@@ -121,6 +146,11 @@ def test_piramide():
 def test_regalos():
     enviar_regalos_diarios()
     return "Prueba de Regalos del Día ejecutada."
+
+@app.route('/test/regalos_guacharo')
+def test_regalos_guacharo():
+    enviar_regalitos_guacharo()
+    return "Prueba de Regalitos del Día - Guácharo Activo ejecutada."
 
 @app.route('/test/saludo')
 def test_saludo():
@@ -403,14 +433,9 @@ def enviar_piramide_diaria():
 def enviar_regalos_diarios():
     ahora = datetime.now()
     fecha_str = ahora.strftime("%d/%m/%Y")
-    
-    # Semilla única y desfasada para Sofía para evitar coincidencias con FyD
-    seed_val = int(ahora.strftime("%Y%m%d")) * 37 + 513
+    seed_val = int(ahora.strftime("%Y%m%d")) + 99
     rnd = random.Random(seed_val)
-    
-    pool_modificado = ANIMALES_POOL.copy()
-    rnd.shuffle(pool_modificado)
-    regalos_seleccionados = pool_modificado[:3]
+    regalos_seleccionados = rnd.sample(ANIMALES_POOL, 3)
      
     for animal in regalos_seleccionados:
         numero = animal.split(" - ")[0].zfill(2)
@@ -428,6 +453,42 @@ def enviar_regalos_diarios():
         "¡Mucha suerte en tus jugadas! 🍀✨"
     )
     enviar_telegram(mensaje_regalos, disable_web_preview=True)
+
+def enviar_regalitos_guacharo():
+    ahora = datetime.now()
+    fecha_str = ahora.strftime("%d/%m/%Y")
+
+    # Selecciona 5 animales únicamente del listado de Guácharo Activo.
+    # La semilla diaria hace que sean estables durante el día y cambien al día siguiente.
+    seed_val = int(ahora.strftime("%Y%m%d")) + 7575
+    rnd = random.Random(seed_val)
+    regalitos = rnd.sample(ANIMALES_GUACHARO, 5)
+
+    # Se registran como recomendaciones para poder detectar aciertos posteriormente.
+    for animal in regalitos:
+        numero = animal.split(" - ")[0].zfill(2)
+        RECOMENDADOS_HOY[numero] = {
+            "motivo": "🦜 Regalito del Día - Guácharo Activo",
+            "hora_emision": ahora
+        }
+
+    mensaje = (
+        "🎁 *REGALITOS DEL DÍA* 🎁\\n"
+        "🦜 *GUÁCHARO ACTIVO* 🦜\\n"
+        f"📅 Fecha: {fecha_str}\\n\\n"
+        "🌟 *1er Regalito:* " + regalitos[0] + "\\n"
+        "🌟 *2do Regalito:* " + regalitos[1] + "\\n"
+        "🌟 *3er Regalito:* " + regalitos[2] + "\\n"
+        "🌟 *4to Regalito:* " + regalitos[3] + "\\n"
+        "🌟 *5to Regalito:* " + regalitos[4] + "\\n\\n"
+        "🦜 *Datos seleccionados exclusivamente del listado Guácharo Activo 00/0 al 75.*\\n\\n"
+        "📲 *WHATSAPP:* 04163199157\\n"
+        f"{ENLACE_CANAL}\\n\\n"
+        "🍀 ¡Mucha suerte en tus jugadas!"
+    )
+
+    enviar_telegram(mensaje, disable_web_preview=True)
+
 
 def obtener_animales_salidos_actuales():
     salidos = set()
@@ -452,11 +513,9 @@ def seleccionar_analisis_dinamico(cantidad):
     if len(disponibles) < cantidad:
         disponibles = ANIMALES_POOL
 
-    seed_val = int(datetime.now().strftime("%Y%m%d%H%M")) * 13 + 77
+    seed_val = int(datetime.now().strftime("%Y%m%d%H%M"))
     rnd = random.Random(seed_val)
-    pool_modificado = disponibles.copy()
-    rnd.shuffle(pool_modificado)
-    return pool_modificado[:cantidad]
+    return rnd.sample(disponibles, cantidad)
 
 def enviar_combinacion_diaria():
     ahora = datetime.now()
@@ -465,12 +524,9 @@ def enviar_combinacion_diaria():
     if len(disponibles) < 7:
         disponibles = ANIMALES_POOL
 
-    seed_val = int(datetime.now().strftime("%Y%m%d%H%M")) * 13 + 77
+    seed_val = int(datetime.now().strftime("%Y%m%d%H%M%S"))
     rnd = random.Random(seed_val)
-    
-    pool_local = disponibles.copy()
-    rnd.shuffle(pool_local)
-    seleccionados = pool_local[:7]
+    seleccionados = rnd.sample(disponibles, 7)
 
     fijo1 = seleccionados[0]
     fijo2 = seleccionados[1]
@@ -882,6 +938,7 @@ def loop_bot():
     schedule.every().day.at("07:00").do(enviar_efemeride_dia)
     schedule.every().day.at("06:31").do(enviar_piramide_diaria)
     schedule.every().day.at("06:45").do(enviar_regalos_diarios)
+    schedule.every().day.at("06:50").do(enviar_regalitos_guacharo)
     schedule.every().day.at("07:30").do(enviar_saludo_matutino)
      
     schedule.every().day.at("08:15").do(enviar_estudio_8am)
