@@ -162,10 +162,6 @@ def test_estudio_estudio_manana():
     enviar_estudio_8am()
     return "Prueba de Análisis de las 8 AM ejecutada."
 
-@app.route('/test/estudio_mediodia')
-def test_estudio_mediodia():
-    enviar_estudio_mediodia()
-    return "Prueba de Análisis del Mediodía ejecutada."
 
 @app.route('/test/estudio_tarde')
 def test_estudio_tarde():
@@ -1018,7 +1014,6 @@ def loop_bot():
     schedule.every().day.at("07:30").do(enviar_saludo_matutino)
      
     schedule.every().day.at("08:15").do(enviar_estudio_8am)
-    schedule.every().day.at("12:15").do(enviar_estudio_mediodia)
     schedule.every().day.at("16:15").do(enviar_estudio_tarde)
     
     schedule.every().day.at("18:30").do(enviar_tasa_dolar)
