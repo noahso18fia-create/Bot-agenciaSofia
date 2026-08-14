@@ -1,10 +1,6 @@
 import os
-
-# ==========================================
-# ZONA HORARIA
-# ==========================================
+# Forzar la zona horaria de Venezuela de forma segura para Windows y Linux
 os.environ['TZ'] = 'America/Caracas'
-
 try:
     import time
     if hasattr(time, 'tzset'):
@@ -14,6 +10,7 @@ except Exception as e:
 
 import requests
 from bs4 import BeautifulSoup
+import time
 import schedule
 from threading import Thread
 from flask import Flask
@@ -23,46 +20,83 @@ from datetime import datetime
 import random
 import json
 import telebot
+import traceback
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 
+# Desactivar advertencias de certificados SSL
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # ==========================================
-# CONFIGURACIÓN AGENCIA SOFIA
+# CONFIGURACIÓN DE CREDENCIALES Y ENLACES (Agencia Sofía)
 # ==========================================
-
-TOKEN = '8893057303:AAHi1D9GJEentjBJJB_6IdMNtSbQ2jxj7WQ'
-CANAL = '@agenciasofiaoficial'
-ENLACE_CANAL = 'https://t.me/agenciasofiaoficial'
-TELEFONO = '04163199157'
+TOKEN = 'TU_TOKEN_DE_TELEGRAM_AQUI'  # Reemplaza con el token del bot de Sofía
+CANAL = '@agenciasofia'                # Reemplaza con el canal de Sofía
+ENLACE_CANAL = 'https://t.me/tu_enlace_de_invitacion' # Reemplaza con el enlace de tu canal
 
 bot = telebot.TeleBot(TOKEN)
 
 URL_LOTERIA = 'https://lotery.winbigvzla.com/resultados'
 URL_BCV = 'https://www.bcv.org.ve/'
 
-ARCH_REGISTRO = "resultados_enviados.json"
+# Archivo local para control de registros persistentes y evitar duplicados
+ARCH_REGISTRO = "resultados_enviados_sofia.json"
 
+# Variables globales para control de recomendaciones, aciertos y conteo diario de animales
 RECOMENDADOS_HOY = {}
 ACIERTOS_HOY = set()
 CONTEO_ANIMALES_HOY = {}
 
-# ==========================================
-# ANIMALES
-# ==========================================
+# Variable global para evitar repetir el último mensaje automático consecutivo
+ULTIMO_INDICE_MENSAJE = -1
 
-ANIMALES_POOL = [
-    "00 - Ballena", "0 - Delfin", "01 - Carnero", "02 - Toro", "03 - Ciempiés", 
-    "04 - Alacrán", "05 - León", "06 - Rana", "07 - Perico", "08 - Ratón", 
-    "09 - Águila", "10 - Tigre", "11 - Gato", "12 - Caballo", "13 - Mono", 
-    "14 - Paloma", "15 - Zorro", "16 - Oso", "17 - Pavo", "18 - Burro", 
-    "19 - Chivo", "20 - Cochino", "21 - Gallo", "22 - Camello", "23 - Cebra", 
-    "24 - Iguana", "25 - Gallina", "26 - Vaca", "27 - Perro", "28 - Zamuro", 
-    "29 - Elefante", "30 - Caimán", "31 - Lapa", "32 - Ardilla", "33 - Pescado", 
-    "34 - Venado", "35 - Jirafa", "36 - Culebra"
+# Pool de mensajes automáticos para mantener activo el canal (Al menos 30 mensajes)
+MENSAJES_AUTOMATICOS = [
+    f"🎯 *Agencia Sofía* 🎯\n¡La suerte está de tu lado hoy! No te quedes sin jugar tu animalito favorito.\n📲 WhatsApp: 04249611372\n{ENLACE_CANAL}",
+    f"🔥 ¡Activos con la buena energía en *Agencia Sofía*! Elige tu animalito y ven a ganar con nosotros.\n📲 WhatsApp: 04249611372",
+    f"🍀 ¿Ya consultaste tu palpito para el próximo sorteo? En *Agencia Sofía* te pagamos al instante.\n📲 WhatsApp: 04249611372\n{ENLACE_CANAL}",
+    f"⚡️ ¡No dejes para última hora tus jugadas! La banca de *Agencia Sofía* está lista para recibir tu tiquet ganador.\n📲 04249611372",
+    f"🌟 La constancia trae el éxito. ¡Sigue jugando tus animalitos preferidos en *Agencia Sofía*!\n📲 WhatsApp: 04249611372\n{ENLACE_CANAL}",
+    f"🎲 ¿Cuál es tu animalito fetiche hoy? Juega seguro y cobra rápido con *Agencia Sofía*.\n📲 WhatsApp: 04249611372",
+    f"🚀 ¡Arranca tu buena racha con *Agencia Sofía*! Trabajamos para ti con la mejor atención.\n📲 WhatsApp: 04249611372\n{ENLACE_CANAL}",
+    f"💡 Un buen día comienza jugando con confianza. ¡Haz tus jugadas en *Agencia Sofía*!\n📲 WhatsApp: 04249611372",
+    f"🎯 ¡Atención apostadores! La pizarra de *Agencia Sofía* está habilitada para que revientes la banca hoy.\n📲 04249611372\n{ENLACE_CANAL}",
+    f"✨ La suerte sonríe a los audaces. ¡Haz tu jugada ahora mismo en *Agencia Sofía*!\n📲 WhatsApp: 04249611372",
+    f"🏆 ¡Conviértete en el próximo ganador del día con *Agencia Sofía*!\n📲 WhatsApp: 04249611372\n{ENLACE_CANAL}",
+    f"🔥 ¡El momento de ganar es ahora! Consulta tus animalitos y juega con *Agencia Sofía*.\n📲 WhatsApp: 04249611372",
+    f"🍀 Confía en tu instinto y sella tus animalitos favoritos en *Agencia Sofía*.\n📲 WhatsApp: 04249611372\n{ENLACE_CANAL}",
+    f"⚡️ ¡Rapidez, seguridad y confianza! Todo eso y más en *Agencia Sofía*.\n📲 WhatsApp: 04249611372",
+    f"🎯 ¡No te quedes fuera de la jugada! Ven y participa con *Agencia Sofía*.\n📲 WhatsApp: 04249611372\n{ENLACE_CANAL}",
+    f"🌟 ¿Listo para acertar el próximo animalito? *Agencia Sofía* te acompaña en cada sorteo.\n📲 04249611372",
+    f"🚀 ¡Sube la apuesta y gana en grande con los animalitos de *Agencia Sofía*!\n📲 WhatsApp: 04249611372\n{ENLACE_CANAL}",
+    f"💡 Recuerda que en *Agencia Sofía* trabajamos para ti todos los días.\n📲 WhatsApp: 04249611372",
+    f"🎲 ¡La emoción de los animalitos se vive mejor jugando con *Agencia Sofía*!\n📲 WhatsApp: 04249611372\n{ENLACE_CANAL}",
+    f"✨ ¡Activa tu buena suerte hoy con *Agencia Sofía*! Escríbenos al WhatsApp.\n📲 04249611372",
+    f"🔥 Los mejores datos y la mejor atención los encuentras aquí en *Agencia Sofía*.\n📲 WhatsApp: 04249611372\n{ENLACE_CANAL}",
+    f"🍀 ¡A ganar se ha dicho! Haz tus jugadas con confianza en *Agencia Sofía*.\n📲 WhatsApp: 04249611372",
+    f"🎯 Mantén la mente positiva y juega tu animalito preferido en *Agencia Sofía*.\n📲 WhatsApp: 04249611372\n{ENLACE_CANAL}",
+    f"⚡️ ¡No esperes al último minuto! Sella tus animalitos con *Agencia Sofía*.\n📲 WhatsApp: 04249611372",
+    f"🌟 ¡La banca de *Agencia Sofía* te espera con las mejores opciones para hoy!\n📲 WhatsApp: 04249611372\n{ENLACE_CANAL}",
+    f"🚀 ¡Imparables! Así son las jugadas ganadoras en *Agencia Sofía*.\n📲 WhatsApp: 04249611372",
+    f"💡 Comparte este canal con tus amigos y amigas para que más ganen con *Agencia Sofía*.\n{ENLACE_CANAL}",
+    f"🎲 ¡La jugada perfecta está a solo un mensaje de distancia en *Agencia Sofía*!\n📲 WhatsApp: 04249611372",
+    f"✨ ¡Que la suerte te acompañe en cada sorteo de hoy! Atentamente, *Agencia Sofía*.\n📲 04249611372\n{ENLACE_CANAL}",
+    f"🔥 ¡Sella, gana y cobra seguro con el respaldo de *Agencia Sofía*!\n📲 WhatsApp: 04249611372"
 ]
 
+# Pool completo de animalitos para los análisis automáticos
+ANIMALES_POOL = [
+    "00 - Ballena", "0- Delfin","01 - Carnero", "02 - Toro", "03 - Ciempiés", "04 - Alacrán", 
+    "05 - León", "06 - Rana", "07 - Perico", "08 - Ratón", "09 - Águila", 
+    "10 - Tigre", "11 - Gato", "12 - Caballo", "13 - Mono", "14 - Paloma", 
+    "15 - Zorro", "16 - Oso", "17 - Pavo", "18 - Burro", "19 - Chivo", 
+    "20 - Cochino", "21 - Gallo", "22 - Camello", "23 - Cebra", "24 - Iguana", 
+    "25 - Gallina", "26 - Vaca", "27 - Perro", "28 - Zamuro", "29 - Elefante", 
+    "30 - Caimán", "31 - Lapa", "32 - Ardilla", "33 - Pescado", "34 - Venado", 
+    "35 - Jirafa", "36 - Culebra"
+]
+
+# Diccionario de abreviaturas oficiales solicitadas para resultados individuales
 TRADUCCION_LOTERIAS = {
     "L.A": "LOTTO ACTIVO",
     "GRJ": "GRANJITA",
@@ -74,110 +108,102 @@ TRADUCCION_LOTERIAS = {
 }
 
 HEADER_SOFIA = (
-    "*🎯 AGENCIA SOFIA 🎯*\n"
-    "━━━━━━━━━━━━━━━━━━\n"
-    "*🎲 🎰*{nombre_loteria}* 🎲\n"
-    "🕐 Hora: {hora}\n"
-    "🐾 Resultado: *{resultado}*\n"
-    "━━━━━━━━━━━━━━━━━━\n"
-    "📲 04163199157"
+    "*AGENCIA SOFÍA*\n"
+    "*RESULTADOS*\n\n"
+    "🎲 *{nombre_loteria}* 🎲\n"
+    "Hora: {hora}\n"
+    "Animalito: *{resultado}*\n\n"
+    "04249611372"
 )
-
-# ==========================================
-# FLASK
-# ==========================================
 
 app = Flask('')
 
 @app.route('/')
 def home():
     return (
-        "<b>🎯 AGENCIA SOFIA 🎯</b><br><br>"
-        "El bot de resultados está activo.<br><br>"
-        "<b>Enlaces de prueba:</b><br>"
-        "👉 <a href='/test/madrugada'>Saludo de Madrugada</a><br>"
-        "👉 <a href='/test/piramide'>Pirámide Numérica</a><br>"
-        "👉 <a href='/test/regalos'>Regalos del Día</a><br>"
-        "👉 <a href='/test/saludo'>Saludo Matutino</a><br>"
-        "👉 <a href='/test/estudio_manana'>Análisis 8 AM</a><br>"
-        "👉 <a href='/test/estudio_mediodia'>Análisis Mediodía</a><br>"
-        "👉 <a href='/test/estudio_tarde'>Análisis Tarde</a><br>"
-        "👉 <a href='/test/bcv'>Tasa BCV</a><br>"
-        "👉 <a href='/test/sorteo'>Cierre de Sorteo</a><br>"
-        "👉 <a href='/test/cierre'>Cierre de Jornada</a><br>"
-        "👉 <a href='/test/combinacion'>Combinación Diaria</a><br>"
-        "👉 <a href='/test/resumen_repetidos'>Resumen</a>"
+        f"¡El bot de resultados individuales de la <b>Agencia Sofía</b> está activo en el canal {CANAL}!<br><br>"
+        "<b>Enlaces de prueba rápida (Test):</b><br>"
+        "👉 <a href='/test/madrugada'>Probar Saludo de Madrugada</a><br>"
+        "👉 <a href='/test/piramide'>Probar Pirámide Numérica (Imagen)</a><br>"
+        "👉 <a href='/test/regalos'>Probar Regalos del Día</a><br>"
+        "👉 <a href='/test/saludo'>Probar Saludo Matutino</a><br>"
+        "👉 <a href='/test/estudio_manana'>Probar Análisis de las 8 AM</a><br>"
+        "👉 <a href='/test/estudio_mediodia'>Probar Análisis del Mediodía</a><br>"
+        "👉 <a href='/test/estudio_tarde'>Probar Análisis de la Tarde</a><br>"
+        "👉 <a href='/test/bcv'>Probar Tasa Oficial BCV</a><br>"
+        "👉 <a href='/test/sorteo'>Probar Cierre de Sorteo (Min 25/55)</a><br>"
+        "👉 <a href='/test/cierre'>Probar Cierre de Jornada (8:00 PM)</a><br>"
+        "👉 <a href='/test/combinacion'>Probar Combinación Diaria</a><br>"
+        "👉 <a href='/test/resumen_repetidos'>Probar Resumen de Repetidos</a>"
     )
 
+# --- RUTAS DE PRUEBA MANUAL (TESTS) ---
 @app.route('/test/madrugada')
 def test_madrugada():
     enviar_saludo_madrugada()
-    return "Prueba ejecutada."
+    return "Prueba de Saludo de Madrugada ejecutada."
 
 @app.route('/test/piramide')
 def test_piramide():
     enviar_piramide_diaria()
-    return "Pirámide ejecutada."
+    return "Prueba de Pirámide Numérica en Imagen ejecutada."
 
 @app.route('/test/regalos')
 def test_regalos():
     enviar_regalos_diarios()
-    return "Regalos ejecutados."
+    return "Prueba de Regalos del Día ejecutada."
 
 @app.route('/test/saludo')
 def test_saludo():
     enviar_saludo_matutino()
-    return "Saludo ejecutado."
+    return "Prueba de Saludo Matutino ejecutada."
 
 @app.route('/test/estudio_manana')
 def test_estudio_manana():
     enviar_estudio_8am()
-    return "Análisis de mañana ejecutado."
+    return "Prueba de Análisis de las 8 AM ejecutada."
 
 @app.route('/test/estudio_mediodia')
 def test_estudio_mediodia():
     enviar_estudio_mediodia()
-    return "Análisis de mediodía ejecutado."
+    return "Prueba de Análisis del Mediodía ejecutada."
 
 @app.route('/test/estudio_tarde')
 def test_estudio_tarde():
     enviar_estudio_tarde()
-    return "Análisis de tarde ejecutado."
+    return "Prueba de Análisis de la Tarde ejecutada."
 
 @app.route('/test/bcv')
 def test_bcv():
     enviar_tasa_dolar()
-    return "Tasa BCV ejecutada."
+    return "Prueba de Tasa BCV ejecutada."
 
 @app.route('/test/sorteo')
 def test_sorteo():
     enviar_aviso_cierre_sorteo()
-    return "Aviso ejecutado."
+    return "Prueba de Cierre de Sorteo ejecutada."
 
 @app.route('/test/cierre')
 def test_cierre():
     enviar_mensaje_cierre()
-    return "Cierre ejecutado."
+    return "Prueba de Cierre de Jornada ejecutada."
 
 @app.route('/test/combinacion')
 def test_combinacion():
     enviar_combinacion_diaria()
-    return "Combinación ejecutada."
+    return "Prueba de Combinación Diaria ejecutada."
+
 
 @app.route('/test/forzar')
 def test_forzar():
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
     payload = {
         "chat_id": CANAL,
-        "text": "🚨 PRUEBA DIRECTA - AGENCIA SOFIA 🚨",
+        "text": "🚨 PRUEBA DIRECTA: Si lees esto, el bot de Sofía tiene acceso total y perfecto al canal.",
         "parse_mode": "Markdown"
     }
     r = requests.post(url, json=payload)
     return f"Respuesta de Telegram: {r.status_code} - {r.text}"
-
-# ==========================================
-# FUNCIONES GENERALES
-# ==========================================
 
 def limpiar_texto(texto):
     return " ".join(texto.split())
@@ -185,53 +211,61 @@ def limpiar_texto(texto):
 def enviar_telegram(mensaje, disable_web_preview=True):
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
     payload = {
-        "chat_id": CANAL,
-        "text": mensaje,
-        "parse_mode": "Markdown",
+        "chat_id": CANAL, 
+        "text": mensaje, 
+        "parse_mode": "Markdown", 
         "disable_web_page_preview": disable_web_preview
     }
     try:
         response = requests.post(url, json=payload, timeout=10)
         if response.status_code != 200:
-            print(f"⚠️ Error Telegram: {response.text}")
+            print(f"⚠️ Error al enviar al canal: {response.text}")
     except Exception as e:
-        print(f"⚠️ Error conectando con Telegram: {e}")
+        print(f"⚠️ Excepción de conexión con Telegram: {e}")
 
 def limpiar_recomendaciones_diarias():
     RECOMENDADOS_HOY.clear()
     ACIERTOS_HOY.clear()
     CONTEO_ANIMALES_HOY.clear()
 
+
+def enviar_mensaje_automatico():
+    global ULTIMO_INDICE_MENSAJE
+    if not MENSAJES_AUTOMATICOS:
+        return
+    
+    indice = random.randint(0, len(MENSAJES_AUTOMATICOS) - 1)
+    if len(MENSAJES_AUTOMATICOS) > 1:
+        while indice == ULTIMO_INDICE_MENSAJE:
+            indice = random.randint(0, len(MENSAJES_AUTOMATICOS) - 1)
+            
+    ULTIMO_INDICE_MENSAJE = indice
+    enviar_telegram(MENSAJES_AUTOMATICOS[indice], disable_web_preview=True)
+
 def enviar_saludo_madrugada():
     enviar_telegram(
-        "🎯 AGENCIA SOFIA 🎯\n\n"
-        "🌟 ¡Activados desde temprano! Que este día venga cargado de mucha suerte. 🍀🔥\n\n"
-        "📲 04163199157",
+        "🎯 AGENCIA SOFÍA 🎯\n\n"
+        "*¡Activados desde temprano! 🌟 Que este día nos traiga mucha suerte y grandes jugadas. ¡Muy buenos días! 🔥*\n"
+        "WHATSAPP: 04249611372",
         disable_web_preview=True
     )
-
-# ==========================================
-# PIRÁMIDE
-# ==========================================
 
 def generar_imagen_piramide():
     ahora = datetime.now()
     fecha_str = ahora.strftime("%d/%m/%Y")
     digitos = [int(c) for c in fecha_str if c.isdigit()]
     filas = [digitos]
-
     while len(filas[-1]) > 1:
         actual = filas[-1]
-        siguiente = [(actual[i] + actual[i + 1]) % 10 for i in range(len(actual) - 1)]
+        siguiente = [(actual[i] + actual[i+1]) % 10 for i in range(len(actual) - 1)]
         filas.append(siguiente)
 
     seed_val = int(ahora.strftime("%Y%m%d"))
     rnd = random.Random(seed_val)
     candidates = []
-
     for f in filas:
         for idx in range(len(f) - 1):
-            val = (f[idx] * 10 + f[idx + 1]) % 37
+            val = (f[idx] * 10 + f[idx+1]) % 37
             candidates.append(f"{val:02d}" if val != 0 else "0")
             candidates.append("00")
         for num in f:
@@ -253,8 +287,7 @@ def generar_imagen_piramide():
     d1 = f"{unique_candidates[0]}-{unique_candidates[1]}-{unique_candidates[2]}"
     d2 = f"{unique_candidates[3]}-{unique_candidates[4]}-{unique_candidates[5]}"
 
-    img_width = 1000
-    img_height = 1120
+    img_width, img_height = 1000, 1120
     image = Image.new("RGB", (img_width, img_height), color=(30, 10, 10))
     draw = ImageDraw.Draw(image)
 
@@ -275,12 +308,12 @@ def generar_imagen_piramide():
         font_pir = ImageFont.load_default()
         font_data = ImageFont.load_default()
 
-    draw.text((img_width // 2, 45), "AGENCIA SOFIA", fill=color_dorado, anchor="mm", font=font_title)
+    draw.text((img_width // 2, 45), "AGENCIA SOFÍA", fill=color_dorado, anchor="mm", font=font_title)
     draw.text((img_width // 2, 90), "Trabajamos para tí", fill=color_blanco, anchor="mm", font=font_sub)
     draw.text((img_width // 2, 145), "PIRÁMIDE DEL DÍA", fill=color_morado, anchor="mm", font=font_title)
 
     draw.rectangle([img_width // 2 - 180, 185, img_width // 2 + 180, 240], fill=color_panel, outline=color_dorado, width=2)
-    draw.text((img_width // 2, 212), f"📅 {fecha_str}", fill=color_dorado_claro, anchor="mm", font=font_data)
+    draw.text((img_width // 2, 212), f"📅  {fecha_str}", fill=color_dorado_claro, anchor="mm", font=font_data)
 
     panel_bottom = 740
     draw.rectangle([40, 290, 280, panel_bottom], fill=color_panel, outline=color_morado, width=2)
@@ -299,11 +332,11 @@ def generar_imagen_piramide():
     draw.rectangle([720, 290, 960, panel_bottom], fill=color_panel, outline=color_morado, width=2)
     draw.text((840, 315), "★ SUMA ★", fill=color_dorado, anchor="mm", font=font_data)
     draw.text((840, 350), "POR FILA", fill=color_dorado, anchor="mm", font=font_data)
-
+    
     y_suma_pos = 400
     for idx, f in enumerate(filas):
         suma_fila = sum(f)
-        draw.text((840, y_suma_pos), f"{idx + 1}RA FILA: {suma_fila}", fill=color_blanco, anchor="mm", font=font_sub)
+        draw.text((840, y_suma_pos), f"{idx+1}RA FILA: {suma_fila}", fill=color_blanco, anchor="mm", font=font_sub)
         y_suma_pos += 40
 
     start_y = 280
@@ -315,6 +348,7 @@ def generar_imagen_piramide():
         num_items = len(f)
         total_width = num_items * 52
         start_x_row = center_x - (total_width // 2)
+
         for j, num in enumerate(f):
             cx = start_x_row + (j * 52) + 24
             cy = start_y + (i * row_height) + 24
@@ -326,7 +360,9 @@ def generar_imagen_piramide():
     draw.text((img_width // 2, box_top + 28), "🔥 DATOS CLAVES PARA HOY:", fill=color_dorado, anchor="mm", font=font_sub)
     draw.text((img_width // 2, box_top + 75), f"📌 {d1}", fill=color_blanco, anchor="mm", font=font_data)
     draw.text((img_width // 2, box_top + 115), f"📌 {d2}", fill=color_blanco, anchor="mm", font=font_data)
-    draw.text((img_width // 2, 955), "WHATSAPP: 04163199157", fill=color_dorado_claro, anchor="mm", font=font_sub)
+
+    footer_y = 955
+    draw.text((img_width // 2, footer_y), "WHATSAPP: 04249611372", fill=color_dorado_claro, anchor="mm", font=font_sub)
 
     bio = BytesIO()
     bio.name = 'piramide_sofia.png'
@@ -341,18 +377,14 @@ def enviar_piramide_diaria():
         files = {'photo': foto_bio}
         data = {
             'chat_id': CANAL,
-            'caption': "🎯 *AGENCIA SOFIA* 🎯\n\n📊 *REPORTE TÁCTICO - LA PIRÁMIDE*\n\n📲 04163199157",
+            'caption': f"📢 *REPORTE TÁCTICO - LA PIRÁMIDE*\n\nWHATSAPP: 04249611372\n{ENLACE_CANAL}",
             'parse_mode': 'Markdown'
         }
         response = requests.post(url, data=data, files=files, timeout=15)
         if response.status_code != 200:
-            print(f"⚠️ Error enviando pirámide: {response.text}")
+            print(f"⚠️ Error al enviar imagen de pirámide: {response.text}")
     except Exception as e:
-        print(f"Error generando/enviando pirámide: {e}")
-
-# ==========================================
-# REGALOS DEL DÍA
-# ==========================================
+        print(f"Error generando/enviando imagen pirámide: {e}")
 
 def enviar_regalos_diarios():
     ahora = datetime.now()
@@ -360,19 +392,21 @@ def enviar_regalos_diarios():
     seed_val = int(ahora.strftime("%Y%m%d")) + 99
     rnd = random.Random(seed_val)
     regalos_seleccionados = rnd.sample(ANIMALES_POOL, 3)
-
+     
     for animal in regalos_seleccionados:
         numero = animal.split(" - ")[0].zfill(2)
         RECOMENDADOS_HOY[numero] = "🎁 Regalo del Día"
 
     mensaje_regalos = (
-        "🎁 *REGALOS DE AGENCIA SOFIA* 🎁\n"
+        "🎁 *LOS REGALOS DE LA AGENCIA SOFÍA* 🎁\n"
         f"📅 Fecha: {fecha_str}\n\n"
+        "¡Los fijos recomendados para reventar la banca hoy:\n\n"
         f"🌟 *1er Regalo:* {regalos_seleccionados[0]}\n"
         f"🌟 *2do Regalo:* {regalos_seleccionados[1]}\n"
         f"🌟 *3er Regalo:* {regalos_seleccionados[2]}\n\n"
-        "📲 04163199157\n\n"
-        "🍀 ¡Mucha suerte!"
+        "📲 WHATSAPP: 04249611372\n"
+        f"{ENLACE_CANAL}\n\n"
+        "¡Mucha suerte en tus jugadas! 🍀✨"
     )
     enviar_telegram(mensaje_regalos, disable_web_preview=True)
 
@@ -389,14 +423,16 @@ def obtener_animales_salidos_actuales():
                 num_str = f"{int(m[0]):02d}" if m[0].isdigit() else m[0]
                 salidos.add(num_str)
     except Exception as e:
-        print(f"Error obteniendo salidos: {e}")
+        print(f"Error obteniendo salidos para análisis: {e}")
     return salidos
 
 def seleccionar_analisis_dinamico(cantidad):
     salidos = obtener_animales_salidos_actuales()
     disponibles = [a for a in ANIMALES_POOL if a.split(" - ")[0].zfill(2) not in salidos]
+     
     if len(disponibles) < cantidad:
         disponibles = ANIMALES_POOL
+
     seed_val = int(datetime.now().strftime("%Y%m%d%H%M"))
     rnd = random.Random(seed_val)
     return rnd.sample(disponibles, cantidad)
@@ -406,25 +442,35 @@ def enviar_combinacion_diaria():
     disponibles = [a for a in ANIMALES_POOL if a.split(" - ")[0].zfill(2) not in salidos]
     if len(disponibles) < 7:
         disponibles = ANIMALES_POOL
+
     seed_val = int(datetime.now().strftime("%Y%m%d%H%M%S"))
     rnd = random.Random(seed_val)
     seleccionados = rnd.sample(disponibles, 7)
 
-    fijo1, fijo2, par1, par2, trip1, trip2, trip3 = seleccionados
+    fijo1 = seleccionados[0]
+    fijo2 = seleccionados[1]
+    par1 = seleccionados[2]
+    par2 = seleccionados[3]
+    trip1 = seleccionados[4]
+    trip2 = seleccionados[5]
+    trip3 = seleccionados[6]
+
     for animal in seleccionados:
         num = animal.split(" - ")[0].zfill(2)
-        RECOMENDADOS_HOY[num] = "🎯 Combinación Especial SOFIA"
+        RECOMENDADOS_HOY[num] = "🎯 Combinación Especial Sofía"
 
     par_str = f"{par1.split(' - ')[0]} - {par2.split(' - ')[0]}"
     trip_str = f"{trip1.split(' - ')[0]} - {trip2.split(' - ')[0]} - {trip3.split(' - ')[0]}"
 
     mensaje = (
-        "🎯 *AGENCIA SOFIA* 🎯\n\n"
-        "🔥 *COMBINACIÓN DEL DÍA*\n\n"
-        f"📌 *Fijos:* `{fijo1}` y `{fijo2}`\n"
+        "🎯 *COMBINACIÓN GANADORA - AGENCIA SOFÍA* 🎯\n"
+        "🔥 ¡Datos exclusivos y directos para asegurar tus jugadas:\n\n"
+        f"📌 *Fijos del Día:* `{fijo1}` y `{fijo2}`\n"
         f"📌 *El Par:* `{par_str}`\n"
         f"📌 *La Tripleta:* `{trip_str}`\n\n"
-        "📲 04163199157"
+        "📲 *WHATSAPP:* 04249611372\n"
+        f"{ENLACE_CANAL}\n\n"
+        "¡A cobrar se ha dicho! 🍀✨"
     )
     enviar_telegram(mensaje, disable_web_preview=True)
 
@@ -435,12 +481,12 @@ def enviar_estudio_8am():
         RECOMENDADOS_HOY[numero] = "🔍 Análisis 8:15 AM"
 
     mensaje = (
-        "🎯 *AGENCIA SOFIA* 🎯\n"
-        "━━━━━━━━━━━━━━━━━━\n"
-        "🔍 *ANÁLISIS 8:15 AM*\n\n"
-        f"🔥 *Recomendados:* `{analisis[0]}` y `{analisis[1]}`\n"
-        "━━━━━━━━━━━━━━━━━━\n"
-        "📲 04163199157"
+        "🎯 *AGENCIA SOFÍA* 🎯\n"
+        "🔍 *ANÁLISIS TRAS EL SORTEO DE LAS 8:00 AM* 🔍\n\n"
+        "¡Ya salieron los primeros animalitos! Evaluando la apertura de la pizarra y descartando lo ya jugado, la casa trae las recomendaciones probables para los siguientes sorteos:\n\n"
+        f"🔥 *Regalitos recomendados:* `{analisis[0]}` y `{analisis[1]}`\n\n"
+        "📲 *WHATSAPP:* 04249611372\n"
+        f"{ENLACE_CANAL}"
     )
     enviar_telegram(mensaje, disable_web_preview=True)
 
@@ -456,14 +502,15 @@ def enviar_estudio_mediodia():
         RECOMENDADOS_HOY[numero] = "🎯 Tripleta Mediodía"
 
     t_str = f"{tripleta[0].split(' - ')[0]} - {tripleta[1].split(' - ')[0]} - {tripleta[2].split(' - ')[0]}"
+     
     mensaje = (
-        "🎯 *AGENCIA SOFIA* 🎯\n"
-        "━━━━━━━━━━━━━━━━━━\n"
-        "☀️ *ANÁLISIS DEL MEDIODÍA*\n\n"
-        f"🔥 *Animales calientes:* `{analisis[0]}` y `{analisis[1]}`\n\n"
-        f"🎯 *Tripleta:* `{t_str}`\n"
-        "━━━━━━━━━━━━━━━━━━\n"
-        "📲 04163199157"
+        "🎯 *AGENCIA SOFÍA* 🎯\n"
+        "☀️ *ANÁLISIS DEL MEDIODÍA* ☀️\n\n"
+        "*¡Mitad de jornada! Estudiando los resultados que nos dejó la mañana y analizando tendencias en vivo, el tablero apunta hacia las siguientes proyecciones:*\n\n"
+        f"🔥 *Animales calientes:* `{analisis[0]}` y `{analisis[1]}`\n"
+        f"🎯 *Tripleta recomendada:* `{t_str}`\n\n"
+        "📲 *WHATSAPP:* 04249611372\n"
+        f"{ENLACE_CANAL}"
     )
     enviar_telegram(mensaje, disable_web_preview=True)
 
@@ -474,21 +521,21 @@ def enviar_estudio_tarde():
         RECOMENDADOS_HOY[numero] = "🌇 Análisis Tarde"
 
     mensaje = (
-        "🎯 *AGENCIA SOFIA* 🎯\n"
-        "━━━━━━━━━━━━━━━━━━\n"
-        "🌇 *ANÁLISIS DE LA TARDE*\n\n"
-        f"⚡️ *Imparables:* `{analisis[0]}` y `{analisis[1]}`\n"
-        "━━━━━━━━━━━━━━━━━━\n"
-        "📲 04163199157"
+        "🎯 *AGENCIA SOFÍA* 🎯\n"
+        "🌇 *ANÁLISIS Y CIERRE DE LA TARDE* 🌇\n\n"
+        "¡A pocas horas de terminar la jornada! Evaluando el comportamiento de los últimos sortos y filtrando los ganadores del día, la casa trae los animales con mayor probabilidad de reventar para asegurar el cierre:\n\n"
+        f"⚡️ *Imparables de la Tarde / Cierre:* `{analisis[0]}` y `{analisis[1]}`\n\n"
+        "📲 *WHATSAPP:* 04249611372\n"
+        f"{ENLACE_CANAL}"
     )
     enviar_telegram(mensaje, disable_web_preview=True)
 
 def enviar_saludo_matutino():
     enviar_telegram(
-        "🎯 AGENCIA SOFIA 🎯\n\n"
-        "☀️ ¡Buenos días!\n\n"
-        "Arrancamos la jornada con la mejor actitud y mucha energía. 🍀🔥\n\n"
-        "📲 04163199157",
+        "🎯 AGENCIA SOFÍA 🎯\n\n"
+        "☀️ ¡Buenos días! Arrancamos la jornada con la mejor actitud y la mejor energía para ganar.\n\n"
+        "📲 WHATSAPP: 04249611372\n"
+        "¡Mucho éxito en tus jugadas de hoy! 🍀🔥",
         disable_web_preview=True
     )
 
@@ -503,10 +550,9 @@ def enviar_tasa_dolar():
             if dolar_div and dolar_div.find('strong'):
                 precio_dolar = dolar_div.find('strong').get_text(strip=True)
         enviar_telegram(
-            "💵 *TASA OFICIAL BCV* 💵\n\n"
-            f"📈 Precio Oficial: Bs. {precio_dolar}\n\n"
-            "🎯 AGENCIA SOFIA\n"
-            "📲 04163199157",
+            "💵 TASA OFICIAL BCV 💵\n"
+            f"📈 Precio Oficial: Bs. {precio_dolar}\n"
+            f"Verifica la tasa oficial en: {URL_BCV}",
             disable_web_preview=True
         )
     except Exception as e:
@@ -514,37 +560,28 @@ def enviar_tasa_dolar():
 
 def enviar_mensaje_cierre():
     enviar_telegram(
-        "🎯 AGENCIA SOFIA 🎯\n\n"
-        "🌙 *FINAL DE JORNADA* 🌙\n\n"
-        "¡Listo por hoy! 🚀\n"
-        "Gracias por acompañarnos.\n\n"
-        "🍀 Mañana seguimos con más suerte.\n\n"
-        "📲 04163199157",
+        "AGENCIA SOFÍA\n"
+        "🌙 ¡FINAL DE JORNADA! 🌙\n"
+        "*¡Listo por hoy! 🚀 Que descansen y sueñen en grande. Mañana nos vemos tempranito con más suerte y nuevos retos. ¡Buenas noches! 🌟💤*",
         disable_web_preview=True
     )
 
 def enviar_aviso_cierre_sorteo():
     enviar_telegram(
         "🛑 *¡ATENCIÓN!* 🛑\n\n"
-        "El tiempo de jugadas ha terminado para este sorteo en:\n\n"
-        "🎯 *AGENCIA SOFIA* 🎯\n\n"
-        "🍀 ¡Mucha suerte!\n\n"
-        "📲 04163199157",
+        "El tiempo de jugadas ha terminado por este sorteo en la **AGENCIA SOFÍA**.\n\n"
+        "🤞 ¡Cruzamos los dedos por ti, mucha suerte en tus apuestas! 🎲🔥",
         disable_web_preview=True
     )
-
-# ==========================================
-# REGISTRO Y REVISIÓN DE RESULTADOS (CORREGIDO)
-# ==========================================
 
 def cargar_registros():
     if os.path.exists(ARCH_REGISTRO):
         try:
-            with open(ARCH_REGISTRO, "r", encoding="utf-8") as f:
+            with open(ARCH_REGISTRO, "r") as f:
                 data = json.load(f)
                 if data.get("fecha") == datetime.now().strftime("%d-%m-%Y"):
                     return set(data.get("enviados", []))
-        except:
+        except Exception:
             pass
     return set()
 
@@ -554,17 +591,15 @@ def guardar_registros(enviados_set):
         "enviados": list(enviados_set)
     }
     try:
-        with open(ARCH_REGISTRO, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False)
+        with open(ARCH_REGISTRO, "w") as f:
+            json.dump(data, f)
     except Exception as e:
-        print(f"Error guardando registros: {e}")
+        print(f"Error al guardar registros: {e}")
 
 def verificar_y_enviar_resultados_individuales():
     enviados_hoy = cargar_registros()
-    es_primera_ejecucion = (len(enviados_hoy) == 0)
-    nuevos_para_guardar = set(enviados_hoy)
-    hubo_cambios = False
-
+    es_primera_ejecucion = len(enviados_hoy) == 0
+     
     try:
         headers = {'User-Agent': 'Mozilla/5.0'}
         respuesta = requests.get(URL_LOTERIA, headers=headers, timeout=15)
@@ -573,138 +608,143 @@ def verificar_y_enviar_resultados_individuales():
 
         soup = BeautifulSoup(respuesta.text, 'html.parser')
         tarjetas = soup.find_all(['div', 'article', 'section'], class_=re.compile(r'card|box|item|lotto|result', re.IGNORECASE))
-        if not tarjetas:
-            tarjetas = soup.find_all('div', class_=re.compile(r'col', re.IGNORECASE))
+
+        hubo_cambios = False
+        nuevos_para_guardar = set(enviados_hoy)
 
         for tarjeta in tarjetas:
-            try:
-                nombre_loteria = ""
-                posibles_titulos = tarjeta.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'span', 'div', 'strong', 'b'], class_=re.compile(r'title|header|name|lotto|text', re.IGNORECASE))
-                
-                for pt in posibles_titulos:
-                    t_text = pt.get_text(" ", strip=True).upper()
-                    if t_text and len(t_text) > 2 and not re.search(r'\d{1,2}:\d{2}', t_text) and "PENDIENTE" not in t_text:
-                        if t_text not in ["WINBIG", "RESULTADOS", "RESULTADOS ANIMALITOS", "ANIMALITOS"]:
-                            nombre_loteria = t_text
-                            break
-
-                if not nombre_loteria:
-                    lineas = [l.strip().upper() for l in tarjeta.get_text("\n", strip=True).split("\n") if l.strip()]
-                    for linea in lineas:
-                        if len(linea) > 2 and not re.search(r'\d{1,2}:\d{2}', linea) and "PENDIENTE" not in linea and "-" not in linea:
-                            if linea not in ["RESULTADOS ANIMALITOS", "ANIMALITOS", "RESULTADOS"]:
-                                nombre_loteria = linea
-                                break
-
-                if not nombre_loteria or len(nombre_loteria) > 40:
-                    continue
-
-                nombre_loteria_limpio = limpiar_texto(nombre_loteria)
-                nombre_loteria_ind = nombre_loteria_limpio
-
-                for sigla, nombre_largo in TRADUCCION_LOTERIAS.items():
-                    if sigla in nombre_loteria_limpio.upper() or nombre_loteria_limpio.upper() == sigla:
-                        nombre_loteria_ind = nombre_largo
+            nombre_loteria = ""
+            posibles_titulos = tarjeta.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'span', 'div', 'strong', 'b'], class_=re.compile(r'title|header|name|lotto|text', re.IGNORECASE))
+            for pt in posibles_titulos:
+                t_text = pt.get_text(" ", strip=True).upper()
+                if t_text and len(t_text) > 2 and not re.search(r'\d{1,2}:\d{2}', t_text) and "PENDIENTE" not in t_text:
+                    if t_text not in ["WINBIG", "RESULTADOS", "RESULTADOS ANIMALITOS", "ANIMALITOS"]:
+                        nombre_loteria = t_text
                         break
 
-                if "RULETA ROYAL" in nombre_loteria_limpio.upper() or "RESULTADOS" in nombre_loteria_limpio.upper():
-                    continue
+            if not nombre_loteria:
+                lineas = [l.strip().upper() for l in tarjeta.get_text("\n", strip=True).split("\n") if l.strip()]
+                for linea in lineas:
+                    if len(linea) > 2 and not re.search(r'\d{1,2}:\d{2}', linea) and "PENDIENTE" not in linea and "-" not in linea:
+                        if linea not in ["RESULTADOS ANIMALITOS", "ANIMALITOS", "RESULTADOS"]:
+                            nombre_loteria = linea
+                            break
 
-                slots_sorteo = tarjeta.find_all(['div', 'li', 'span', 'tr'], class_=re.compile(r'item|slot|draw|row|col', re.IGNORECASE))
-                if not slots_sorteo:
-                    slots_sorteo = [tarjeta]
-
-                for slot in slots_sorteo:
-                    try:
-                        texto_slot = slot.get_text(" ", strip=True).upper()
-                        if "PENDIENTE" in texto_slot:
-                            continue
-
-                        match_h = re.search(r'\b(\d{1,2}:\d{2}\s*(?:AM|PM))\b', texto_slot)
-                        if not match_h:
-                            continue
-
-                        hora = match_h.group(1).upper()
-                        match_res = re.search(r'(\d{1,2}\s*-\s*[A-ZÁÉÍÓÚÑa-zñáéíóú]+(?:\s+[A-ZÁÉÍÓÚÑa-zñáéíóú]+)?)', texto_slot)
-                        if not match_res:
-                            continue
-
-                        resultado = limpiar_texto(match_res.group(1)).upper()
-                        numero = resultado.split("-")[0].strip().zfill(2)
-
-                        # Detectar aciertos si hay recomendados
-                        if numero in RECOMENDADOS_HOY and numero not in ACIERTOS_HOY:
-                            mensaje = (
-                                "🎉🎉 *¡ACERTAMOS!* 🎉🎉\n\n"
-                                f"✅ {RECOMENDADOS_HOY[numero]}\n\n"
-                                f"🎯 *{resultado}*\n"
-                                f"🎲 {nombre_loteria_ind}\n"
-                                f"🕒 {hora}\n\n"
-                                "🍀 ¡Felicidades!\n"
-                                "🎯 *AGENCIA SOFIA*\n"
-                                "📲 04163199157"
-                            )
-                            enviar_telegram(mensaje)
-                            ACIERTOS_HOY.add(numero)
-
-                        id_resultado = f"{nombre_loteria_ind}_{hora}_{resultado}"
-
-                        if es_primera_ejecucion:
-                            nuevos_para_guardar.add(id_resultado)
-                            continue
-
-                        if id_resultado not in enviados_hoy:
-                            mensaje = HEADER_SOFIA.format(
-                                nombre_loteria=nombre_loteria_ind,
-                                hora=hora,
-                                resultado=resultado
-                            )
-                            enviar_telegram(mensaje, disable_web_preview=True)
-                            nuevos_para_guardar.add(id_resultado)
-                            hubo_cambios = True
-                            time.sleep(1.2)
-                    except:
-                        continue
-
-            except:
+            if not nombre_loteria or len(nombre_loteria) > 40:
                 continue
 
-        if es_primera_ejecucion or hubo_cambios:
+            nombre_loteria_limpio = limpiar_texto(nombre_loteria)
+            loteria_key = nombre_loteria_limpio
+
+            nombre_loteria_ind = nombre_loteria_limpio
+            for sigla, nombre_largo in TRADUCCION_LOTERIAS.items():
+                if sigla in nombre_loteria_limpio.upper() or nombre_loteria_limpio.upper() == sigla:
+                    nombre_loteria_ind = nombre_largo
+                    break
+
+            if "RULETA ROYAL" in nombre_loteria_limpio.upper() or "RESULTADOS" in nombre_loteria_limpio.upper():
+                continue
+
+            slots_sorteo = tarjeta.find_all(['div', 'li', 'span', 'tr'], class_=re.compile(r'item|slot|draw|row|col', re.IGNORECASE))
+            if not slots_sorteo:
+                slots_sorteo = [tarjeta]
+
+            for slot in slots_sorteo:
+                texto_slot = slot.get_text(" ", strip=True).upper()
+                if "PENDIENTE" in texto_slot:
+                    continue
+
+                match_h = re.search(r'\b(\d{1,2}:\d{2}\s*(?:AM|PM))\b', texto_slot)
+                if not match_h:
+                    continue
+                hora = match_h.group(1).upper()
+
+                match_res = re.search(r'(\d{1,2}\s-\s[A-ZÁÉÍÓÚÑa-zñáéíóú]+(?:\s+[A-ZÁÉÍÓÚÑa-zñáéíóú]+)?)', texto_slot)
+                if not match_res:
+                    continue
+
+                resultado = limpiar_texto(match_res.group(1)).upper()
+
+                CONTEO_ANIMALES_HOY[resultado] = CONTEO_ANIMALES_HOY.get(resultado, 0) + 1
+
+                numero = resultado.split("-")[0].strip().zfill(2)
+
+                if numero in RECOMENDADOS_HOY and numero not in ACIERTOS_HOY:
+                    mensaje = (
+                        "🎉🎉 *¡ACERTAMOS!* 🎉🎉\n\n"
+                        f"✅ {RECOMENDADOS_HOY[numero]}\n\n"
+                        f"🎯 *{resultado}*\n"
+                        f"🎲 {nombre_loteria_ind}\n"
+                        f"🕒 {hora}\n\n"
+                        "🍀 *¡Felicidades a todos los que confiaron en Agencia Sofía!*"
+                    )
+
+                    enviar_telegram(mensaje)
+
+                    ACIERTOS_HOY.add(numero)
+
+                id_resultado = f"{nombre_loteria_ind}_{hora}_{resultado}"
+
+                if es_primera_ejecucion:
+                    nuevos_para_guardar.add(id_resultado)
+                    continue
+
+                if id_resultado not in enviados_hoy:
+                    hora_actual_str = datetime.now().strftime("%I:%M %p")
+                    mensaje = HEADER_SOFIA.format(
+                        hora_str=hora_actual_str,
+                        nombre_loteria=nombre_loteria_ind,
+                        hora=hora,
+                        resultado=resultado
+                    )
+                    enviar_telegram(mensaje)
+                    nuevos_para_guardar.add(id_resultado)
+                    hubo_cambios = True
+                    time.sleep(1.5)
+
+        if es_primera_ejecucion:
+            guardar_registros(nuevos_para_guardar)
+        elif hubo_cambios:
             guardar_registros(nuevos_para_guardar)
 
     except Exception as e:
-        print(f"Error verificando resultados: {e}")
+        print(f"Error al verificar resultados individuales: {e}")
 
 ultimo_aviso_minuto = ""
 
 def verificar_minuto():
     global ultimo_aviso_minuto
     ahora = datetime.now()
+     
+    # Restringir el aviso de cierre estrictamente entre las 7:25 AM y las 7:55 PM
     hora_actual_minutos = ahora.hour * 60 + ahora.minute
-    if not (7 * 60 + 25 <= hora_actual_minutos <= 19 * 60 + 55):
+    inicio_minutos = 7 * 60 + 25   # 07:25 AM
+    fin_minutos = 19 * 60 + 55     # 07:55 PM
+
+    if not (inicio_minutos <= hora_actual_minutos <= fin_minutos):
         return
-    if ahora.minute in [25, 55]:
+
+    minuto_actual = ahora.minute
+    if minuto_actual in [25, 55]:
         clave_tiempo = ahora.strftime("%H:%M")
         if ultimo_aviso_minuto != clave_tiempo:
             enviar_aviso_cierre_sorteo()
             ultimo_aviso_minuto = clave_tiempo
 
-# ==========================================
-# COMANDOS /RESUMEN Y /TABLA
-# ==========================================
-
 @bot.message_handler(commands=['resumen', 'tabla'])
 def cmd_resumen(message):
     try:
-        bot.reply_to(message, "🔍 Consultando resultados de AGENCIA SOFIA...")
+        bot.reply_to(message, "🔍 Consultando resumen de resultados actual, por favor espera...")
+         
         headers = {'User-Agent': 'Mozilla/5.0'}
         respuesta = requests.get(URL_LOTERIA, headers=headers, timeout=15)
         if respuesta.status_code != 200:
-            bot.reply_to(message, "⚠️ No se pudo conectar con la página de resultados.")
+            bot.reply_to(message, "⚠️ No se pudo conectar con la página de resultados en este momento.")
             return
 
         soup = BeautifulSoup(respuesta.text, 'html.parser')
         tarjetas = soup.find_all(['div', 'article', 'section'], class_=re.compile(r'card|box|item|lotto|result', re.IGNORECASE))
+
         resumen_por_loterias = {}
 
         for tarjeta in tarjetas:
@@ -730,6 +770,7 @@ def cmd_resumen(message):
                     continue
 
                 nombre_loteria = limpiar_texto(nombre_loteria)
+                 
                 for sigla, nombre_largo in TRADUCCION_LOTERIAS.items():
                     if sigla in nombre_loteria.upper() or nombre_loteria.upper() == sigla:
                         nombre_loteria = nombre_largo
@@ -748,33 +789,34 @@ def cmd_resumen(message):
                 for slot in slots_sorteo:
                     try:
                         texto_slot = slot.get_text(" ", strip=True).upper()
+                         
                         match_h = re.search(r'\b(\d{1,2}:\d{2}\s*(?:AM|PM))\b', texto_slot)
                         if not match_h:
                             continue
                         hora = match_h.group(1).upper()
+
                         if "PENDIENTE" in texto_slot:
                             resumen_por_loterias[nombre_loteria].append(f"• {hora} ➔ ⏳ Pendiente")
                         else:
-                            match_res = re.search(r'(\d{1,2}\s*-\s*[A-ZÁÉÍÓÚÑa-zñáéíóú]+(?:\s+[A-ZÁÉÍÓÚÑa-zñáéíóú]+)?)', texto_slot)
+                            match_res = re.search(r'(\d{1,2}\s-\s[A-ZÁÉÍÓÚÑa-zñáéíóú]+(?:\s+[A-ZÁÉÍÓÚÑa-zñáéíóú]+)?)', texto_slot)
                             if match_res:
                                 resultado = limpiar_texto(match_res.group(1)).upper()
                                 resumen_por_loterias[nombre_loteria].append(f"• {hora} ➔ {resultado}")
-                    except:
+                    except Exception:
                         continue
-            except:
+            except Exception:
                 continue
 
         if not resumen_por_loterias:
-            bot.reply_to(message, "⚠️ No se encontraron resultados.")
+            bot.reply_to(message, "⚠️ No se encontraron resultados disponibles en este momento.")
             return
 
         fecha_hoy = datetime.now().strftime("%d/%m/%Y")
         texto_final = (
-            "🎯 *AGENCIA SOFIA* 🎯\n"
-            "━━━━━━━━━━━━━━━━━━\n"
-            "📊 *RESUMEN DE GANADORES DEL DÍA*\n"
-            f"📅 Fecha: {fecha_hoy}\n"
-            "━━━━━━━━━━━━━━━━━━\n\n"
+            "🎯 *AGENCIA SOFÍA* 🎯\n"
+            "_Trabajamos para tí_\n\n"
+            "📊 *RESUMEN DE GANADORES DEL DÍA* 📊\n"
+            f"📅 Fecha: {fecha_hoy}\n\n"
         )
 
         for loteria, items in resumen_por_loterias.items():
@@ -784,7 +826,7 @@ def cmd_resumen(message):
                     texto_final += f"  {item}\n"
                 texto_final += "\n"
 
-        texto_final += "━━━━━━━━━━━━━━━━━━\n📲 *04163199157*"
+        texto_final += f"📲 *WHATSAPP:* 04249611372\n{ENLACE_CANAL}"
 
         if len(texto_final) > 4000:
             for x in range(0, len(texto_final), 4000):
@@ -793,29 +835,36 @@ def cmd_resumen(message):
             bot.send_message(message.chat.id, texto_final, parse_mode="Markdown")
 
     except Exception as e:
-        print(f"Error general en resumen: {e}")
+        print(f"Error general en comando tabla: {e}")
         bot.reply_to(message, f"⚠️ Error técnico: {str(e)}")
-
-# ==========================================
-# PROGRAMACIÓN
-# ==========================================
 
 def loop_bot():
     schedule.every().day.at("06:31").do(enviar_piramide_diaria)
     schedule.every().day.at("06:45").do(enviar_regalos_diarios)
     schedule.every().day.at("07:00").do(enviar_saludo_matutino)
+     
     schedule.every().day.at("08:15").do(enviar_estudio_8am)
     schedule.every().day.at("12:15").do(enviar_estudio_mediodia)
     schedule.every().day.at("16:15").do(enviar_estudio_tarde)
+    
     schedule.every().day.at("15:30").do(enviar_tasa_dolar)
     schedule.every().day.at("20:00").do(enviar_mensaje_cierre)
-
+    
+    schedule.every().day.at("09:30").do(enviar_mensaje_automatico)
+    schedule.every().day.at("10:30").do(enviar_mensaje_automatico)
+    schedule.every().day.at("11:30").do(enviar_mensaje_automatico)
+    schedule.every().day.at("13:30").do(enviar_mensaje_automatico)
+    schedule.every().day.at("14:30").do(enviar_mensaje_automatico)
+    schedule.every().day.at("15:40").do(enviar_mensaje_automatico)
+    schedule.every().day.at("17:30").do(enviar_mensaje_automatico)
+    schedule.every().day.at("19:30").do(enviar_mensaje_automatico)
+    
     schedule.every().day.at("09:40").do(enviar_combinacion_diaria)
     schedule.every().day.at("13:30").do(enviar_combinacion_diaria)
     schedule.every().day.at("17:30").do(enviar_combinacion_diaria)
 
     schedule.every().day.at("00:01").do(limpiar_recomendaciones_diarias)
-
+    
     schedule.every(1).minutes.do(verificar_y_enviar_resultados_individuales)
     schedule.every(1).minutes.do(verificar_minuto)
 
@@ -823,20 +872,14 @@ def loop_bot():
         schedule.run_pending()
         time.sleep(1)
 
-# ==========================================
-# INICIO
-# ==========================================
-
 if __name__ == "__main__":
     t_bot = Thread(target=loop_bot)
     t_bot.daemon = True
     t_bot.start()
-
+     
     try:
         bot.remove_webhook()
-        t_polling = Thread(
-            target=lambda: bot.infinity_polling(skip_pending=True, interval=3, timeout=20)
-        )
+        t_polling = Thread(target=lambda: bot.infinity_polling(skip_pending=True, interval=3, timeout=20))
         t_polling.daemon = True
         t_polling.start()
     except Exception as e:
