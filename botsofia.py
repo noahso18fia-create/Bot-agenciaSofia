@@ -556,16 +556,8 @@ def guardar_registros(enviados_set):
 
 
    def verificar_y_enviar_resultados_individuales():
-    ahora = datetime.now()
 
-    minutos_actuales = ahora.hour * 60 + ahora.minute
-    inicio = 7 * 60 + 30  # 07:30 AM
-
-    # No revisar antes de las 7:30 AM
-    if minutos_actuales < inicio:
-        return
-
-    enviados_hoy = cargar_registros()
+    enviados_hoy = 
 
     try:
         headers = {
