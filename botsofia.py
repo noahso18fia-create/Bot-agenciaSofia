@@ -59,31 +59,6 @@ ANIMALES_POOL = [
     "35 - Jirafa", "36 - Culebra"
 ]
 
-# ==========================================
-# ANIMALES GUÁCHARO ACTIVO (00/0 AL 75)
-# ==========================================
-ANIMALES_GUACHARO = [
-    "00 - Ballena", "01 - Carnero", "02 - Toro", "03 - Ciempiés",
-    "04 - Alacrán", "05 - León", "06 - Rana", "07 - Perico",
-    "08 - Ratón", "09 - Águila", "10 - Tigre", "11 - Gato",
-    "12 - Caballo", "13 - Mono", "14 - Paloma", "15 - Zorro",
-    "16 - Oso", "17 - Pavo", "18 - Burro", "19 - Chivo",
-    "20 - Cochino", "21 - Gallo", "22 - Camello", "23 - Cebra",
-    "24 - Iguana", "25 - Gallina", "26 - Vaca", "27 - Perro",
-    "28 - Zamuro", "29 - Elefante", "30 - Caimán", "31 - Lapa",
-    "32 - Ardilla", "33 - Pescado", "34 - Venado", "35 - Jirafa",
-    "36 - Culebra", "37 - Tortuga", "38 - Búfalo", "39 - Lechuza",
-    "40 - Avispa", "41 - Canguro", "42 - Tucán", "43 - Mariposa",
-    "44 - Chigüire", "45 - Garza", "46 - Puma", "47 - Pavo Real",
-    "48 - Puercoespín", "49 - Pereza", "50 - Canario", "51 - Pelícano",
-    "52 - Pulpo", "53 - Caracol", "54 - Grillo", "55 - Oso Hormiguero",
-    "56 - Tiburón", "57 - Pato", "58 - Hormiga", "59 - Pantera",
-    "60 - Camaleón", "61 - Panda", "62 - Cachicamo", "63 - Cangrejo",
-    "64 - Gavilán", "65 - Araña", "66 - Lobo", "67 - Avestruz",
-    "68 - Jaguar", "69 - Conejo", "70 - Bisonte", "71 - Guacamaya",
-    "72 - Gorila", "73 - Hipopótamo", "74 - Turpial", "75 - Guácharo"
-]
-
 # Diccionario de abreviaturas oficiales solicitadas para resultados individuales
 TRADUCCION_LOTERIAS = {
     "L.A": "LOTTO ACTIVO",
@@ -117,6 +92,7 @@ def home():
         "👉 <a href='/test/regalos'>Probar Regalos del Día</a><br>"
         "👉 <a href='/test/saludo'>Probar Saludo Matutino</a><br>"
         "👉 <a href='/test/estudio_manana'>Probar Análisis de las 8 AM</a><br>"
+        "👉 <a href='/test/estudio_mediodia'>Probar Análisis del Mediodía</a><br>"
         "👉 <a href='/test/estudio_tarde'>Probar Análisis de la Tarde</a><br>"
         "👉 <a href='/test/bcv'>Probar Tasa Oficial BCV</a><br>"
         "👉 <a href='/test/sorteo'>Probar Cierre de Sorteo (Min 25/55)</a><br>"
@@ -146,11 +122,6 @@ def test_regalos():
     enviar_regalos_diarios()
     return "Prueba de Regalos del Día ejecutada."
 
-@app.route('/test/regalos_guacharo')
-def test_regalos_guacharo():
-    enviar_regalitos_guacharo()
-    return "Prueba de Regalitos del Día - Guácharo Activo ejecutada."
-
 @app.route('/test/saludo')
 def test_saludo():
     enviar_saludo_matutino()
@@ -160,6 +131,11 @@ def test_saludo():
 def test_estudio_estudio_manana():
     enviar_estudio_8am()
     return "Prueba de Análisis de las 8 AM ejecutada."
+
+@app.route('/test/estudio_mediodia')
+def test_estudio_mediodia():
+    enviar_estudio_mediodia()
+    return "Prueba de Análisis del Mediodía ejecutada."
 
 @app.route('/test/estudio_tarde')
 def test_estudio_tarde():
@@ -368,7 +344,7 @@ def generar_imagen_piramide():
 
     draw.rectangle([720, 290, 960, panel_bottom], fill=color_panel, outline=color_morado, width=2)
     draw.text((840, 315), "★ SUMA ★", fill=color_dorado, anchor="mm", font=font_data)
-    draw.text((840, 350), "POR FILA", fill=color_dorado_claro, anchor="mm", font=font_data)
+    draw.text((840, 350), "POR FILA", fill=color_dorado, anchor="mm", font=font_data)
     
     y_suma_pos = 400
     for idx, f in enumerate(filas):
@@ -427,18 +403,13 @@ def enviar_piramide_diaria():
 def enviar_regalos_diarios():
     ahora = datetime.now()
     fecha_str = ahora.strftime("%d/%m/%Y")
-
-    seed_val = int(ahora.strftime("%Y%m%d")) + 48291
+    seed_val = int(ahora.strftime("%Y%m%d")) + 99
     rnd = random.Random(seed_val)
-
     regalos_seleccionados = rnd.sample(ANIMALES_POOL, 3)
-
+     
     for animal in regalos_seleccionados:
         numero = animal.split(" - ")[0].zfill(2)
-        RECOMENDADOS_HOY[numero] = {
-            "motivo": "🎁 Regalo del Día - Agencia Sofia",
-            "hora_emision": ahora
-        }
+        RECOMENDADOS_HOY[numero] = {"motivo": "🎁 Regalo del Día", "hora_emision": ahora}
 
     mensaje_regalos = (
         "🎁 *LOS REGALOS DE LA AGENCIA SOFIA* 🎁\n"
@@ -451,62 +422,7 @@ def enviar_regalos_diarios():
         f"{ENLACE_CANAL}\n\n"
         "¡Mucha suerte en tus jugadas! 🍀✨"
     )
-
     enviar_telegram(mensaje_regalos, disable_web_preview=True)
-
-def enviar_regalitos_guacharo():
-    ahora = datetime.now()
-    fecha_str = ahora.strftime("%d/%m/%Y")
-
-    seed_val = int(ahora.strftime("%Y%m%d")) + 91357
-    rnd = random.Random(seed_val)
-
-    regalitos = rnd.sample(ANIMALES_GUACHARO, 5)
-
-    for animal in regalitos:
-        partes = animal.split(" - ", 1)
-        numero = partes[0].strip()
-
-        if numero.isdigit():
-            numero = f"{int(numero):02d}"
-
-        RECOMENDADOS_HOY[numero] = {
-            "motivo": "🦜 Regalito del Día - Guácharo Activo Sofia",
-            "hora_emision": ahora
-        }
-
-    regalos_formateados = []
-
-    for animal in regalitos:
-        partes = animal.split(" - ", 1)
-
-        if len(partes) == 2:
-            numero = partes[0].strip()
-            nombre = partes[1].strip()
-
-            if numero.isdigit():
-                numero = f"{int(numero):02d}"
-
-            regalos_formateados.append(f"{numero} - {nombre}")
-        else:
-            regalos_formateados.append(animal)
-
-    mensaje = (
-        "🎁 *REGALITOS DEL DÍA* 🎁\n"
-        "🦜 *GUÁCHARO ACTIVO* 🦜\n"
-        f"📅 Fecha: {fecha_str}\n\n"
-        f"🌟 *1er Regalito:* {regalos_formateados[0]}\n"
-        f"🌟 *2do Regalito:* {regalos_formateados[1]}\n"
-        f"🌟 *3er Regalito:* {regalos_formateados[2]}\n"
-        f"🌟 *4to Regalito:* {regalos_formateados[3]}\n"
-        f"🌟 *5to Regalito:* {regalos_formateados[4]}\n\n"
-        "🦜 *Datos seleccionados exclusivamente del listado Guácharo Activo 00 al 75.*\n\n"
-        "📲 *WHATSAPP:* 04163199157\n"
-        f"{ENLACE_CANAL}\n\n"
-        "🍀 ¡Mucha suerte en tus jugadas!"
-    )
-
-    enviar_telegram(mensaje, disable_web_preview=True)
 
 def obtener_animales_salidos_actuales():
     salidos = set()
@@ -537,140 +453,99 @@ def seleccionar_analisis_dinamico(cantidad):
 
 def enviar_combinacion_diaria():
     ahora = datetime.now()
-
     salidos = obtener_animales_salidos_actuales()
-    disponibles = [
-        a for a in ANIMALES_POOL
-        if a.split(" - ")[0].zfill(2) not in salidos
-    ]
-
+    disponibles = [a for a in ANIMALES_POOL if a.split(" - ")[0].zfill(2) not in salidos]
     if len(disponibles) < 7:
-        disponibles = ANIMALES_POOL.copy()
+        disponibles = ANIMALES_POOL
 
-    seed_val = int(ahora.strftime("%Y%m%d%H%M%S")) + 63847
+    seed_val = int(datetime.now().strftime("%Y%m%d%H%M%S"))
     rnd = random.Random(seed_val)
-
     seleccionados = rnd.sample(disponibles, 7)
 
     fijo1 = seleccionados[0]
     fijo2 = seleccionados[1]
-
     par1 = seleccionados[2]
     par2 = seleccionados[3]
-
     trip1 = seleccionados[4]
     trip2 = seleccionados[5]
     trip3 = seleccionados[6]
 
     for animal in seleccionados:
         num = animal.split(" - ")[0].zfill(2)
+        RECOMENDADOS_HOY[num] = {"motivo": "🎯 Combinación Especial Sofia", "hora_emision": ahora}
 
-        RECOMENDADOS_HOY[num] = {
-            "motivo": "🎯 Combinación Especial Sofia",
-            "hora_emision": ahora
-        }
-
-    par_str = (
-        f"{par1.split(' - ')[0]} - "
-        f"{par2.split(' - ')[0]}"
-    )
-
-    trip_str = (
-        f"{trip1.split(' - ')[0]} - "
-        f"{trip2.split(' - ')[0]} - "
-        f"{trip3.split(' - ')[0]}"
-    )
+    par_str = f"{par1.split(' - ')[0]} - {par2.split(' - ')[0]}"
+    trip_str = f"{trip1.split(' - ')[0]} - {trip2.split(' - ')[0]} - {trip3.split(' - ')[0]}"
 
     mensaje = (
         "🎯 *COMBINACIÓN GANADORA - AGENCIA SOFIA* 🎯\n"
-        "🔥 ¡Datos exclusivos y directos para tus jugadas:\n\n"
+        "🔥 ¡Datos exclusivos y directos para asegurar tus jugadas:\n\n"
         f"📌 *Fijos del Día:* `{fijo1}` y `{fijo2}`\n"
         f"📌 *El Par:* `{par_str}`\n"
         f"📌 *La Tripleta:* `{trip_str}`\n\n"
-        "📲 WHATSAPP: 04163199157\n"
+        "📲 *WHATSAPP:* 04163199157\n"
         f"{ENLACE_CANAL}\n\n"
         "¡A cobrar se ha dicho! 🍀✨"
     )
-
     enviar_telegram(mensaje, disable_web_preview=True)
 
 def enviar_estudio_8am():
     ahora = datetime.now()
-
-    salidos = obtener_animales_salidos_actuales()
-
-    disponibles = [
-        a for a in ANIMALES_POOL
-        if a.split(" - ")[0].zfill(2) not in salidos
-    ]
-
-    if len(disponibles) < 2:
-        disponibles = ANIMALES_POOL.copy()
-
-    seed_val = int(ahora.strftime("%Y%m%d%H%M")) + 72461
-    rnd = random.Random(seed_val)
-
-    analisis = rnd.sample(disponibles, 2)
-
+    analisis = seleccionar_analisis_dinamico(2)
     for animal in analisis:
         numero = animal.split(" - ")[0].zfill(2)
-
-        RECOMENDADOS_HOY[numero] = {
-            "motivo": "🔍 Análisis 8:15 AM - Sofia",
-            "hora_emision": ahora
-        }
+        RECOMENDADOS_HOY[numero] = {"motivo": "🔍 Análisis 8:15 AM", "hora_emision": ahora}
 
     mensaje = (
         "🎯 *AGENCIA SOFIA* 🎯\n"
         "🔍 *ANÁLISIS TRAS EL SORTEO DE LAS 8:00 AM* 🔍\n\n"
-        "¡Ya salieron los primeros animalitos! "
-        "Evaluando la apertura de la pizarra y descartando lo ya jugado, "
-        "el sistema trae las siguientes recomendaciones:\n\n"
+        "¡Ya salieron los primeros animalitos! Evaluando la apertura de la pizarra y descartando lo ya jugado, la casa trae las recomendaciones probables para los siguientes sorteos:\n\n"
         f"🔥 *Regalitos recomendados:* `{analisis[0]}` y `{analisis[1]}`\n\n"
-        "📲 WHATSAPP: 04163199157\n"
+        "📲 *WHATSAPP:* 04163199157\n"
         f"{ENLACE_CANAL}"
     )
+    enviar_telegram(mensaje, disable_web_preview=True)
 
+def enviar_estudio_mediodia():
+    ahora = datetime.now()
+    analisis = seleccionar_analisis_dinamico(2)
+    for animal in analisis:
+        numero = animal.split(" - ")[0].zfill(2)
+        RECOMENDADOS_HOY[numero] = {"motivo": "☀️ Análisis Mediodía", "hora_emision": ahora}
+
+    tripleta = seleccionar_analisis_dinamico(3)
+    for animal in tripleta:
+        numero = animal.split(" - ")[0].zfill(2)
+        RECOMENDADOS_HOY[numero] = {"motivo": "🎯 Tripleta Mediodía", "hora_emision": ahora}
+
+    t_str = f"{tripleta[0].split(' - ')[0]} - {tripleta[1].split(' - ')[0]} - {tripleta[2].split(' - ')[0]}"
+     
+    mensaje = (
+        "🎯 *AGENCIA SOFIA* 🎯\n"
+        "☀️ *ANÁLISIS DEL MEDIODÍA* ☀️\n\n"
+        "*¡Mitad de jornada! Estudiando los resultados que nos dejó la mañana y analizando tendencias en vivo, el tablero apunta hacia las siguientes proyecciones:*\n\n"
+        f"🔥 *Animales calientes:* `{analisis[0]}` y `{analisis[1]}`\n"
+        f"🎯 *Tripleta recomendada:* `{t_str}`\n\n"
+        "📲 *WHATSAPP:* 04163199157\n"
+        f"{ENLACE_CANAL}"
+    )
     enviar_telegram(mensaje, disable_web_preview=True)
 
 def enviar_estudio_tarde():
     ahora = datetime.now()
-
-    salidos = obtener_animales_salidos_actuales()
-
-    disponibles = [
-        a for a in ANIMALES_POOL
-        if a.split(" - ")[0].zfill(2) not in salidos
-    ]
-
-    if len(disponibles) < 2:
-        disponibles = ANIMALES_POOL.copy()
-
-    seed_val = int(ahora.strftime("%Y%m%d%H%M")) + 94673
-    rnd = random.Random(seed_val)
-
-    analisis = rnd.sample(disponibles, 2)
-
+    analisis = seleccionar_analisis_dinamico(2)
     for animal in analisis:
         numero = animal.split(" - ")[0].zfill(2)
-
-        RECOMENDADOS_HOY[numero] = {
-            "motivo": "🌇 Análisis Tarde - Sofia",
-            "hora_emision": ahora
-        }
+        RECOMENDADOS_HOY[numero] = {"motivo": "🌇 Análisis Tarde", "hora_emision": ahora}
 
     mensaje = (
         "🎯 *AGENCIA SOFIA* 🎯\n"
         "🌇 *ANÁLISIS Y CIERRE DE LA TARDE* 🌇\n\n"
-        "¡A pocas horas de terminar la jornada! Evaluando el comportamiento "
-        "de los últimos sorteos y filtrando los ganadores del día, "
-        "el sistema trae los animales para el cierre:\n\n"
-        f"⚡️ *Imparables de la Tarde / Cierre:* "
-        f"`{analisis[0]}` y `{analisis[1]}`\n\n"
-        "📲 WHATSAPP: 04163199157\n"
+        "¡A pocas horas de terminar la jornada! Evaluando el comportamiento de los últimos sorteos y filtrando los ganadores del día, la casa trae los animales con mayor probabilidad de reventar para asegurar el cierre:\n\n"
+        f"⚡️ *Imparables de la Tarde / Cierre:* `{analisis[0]}` y `{analisis[1]}`\n\n"
+        "📲 *WHATSAPP:* 04163199157\n"
         f"{ENLACE_CANAL}"
     )
-
     enviar_telegram(mensaje, disable_web_preview=True)
 
 def enviar_saludo_matutino():
@@ -753,11 +628,7 @@ def verificar_y_enviar_resultados_individuales():
             return
 
         soup = BeautifulSoup(respuesta.text, 'html.parser')
-        
-        # Búsqueda ampliada para garantizar que agarre los bloques de la página web
-        tarjetas = soup.find_all(['div', 'article', 'section', 'ul', 'li'], class_=re.compile(r'card|box|item|lotto|result|col|row|block', re.IGNORECASE))
-        if not tarjetas:
-            tarjetas = soup.find_all('div')
+        tarjetas = soup.find_all(['div', 'article', 'section'], class_=re.compile(r'card|box|item|lotto|result', re.IGNORECASE))
 
         hubo_cambios = False
         nuevos_para_guardar = set(enviados_hoy)
@@ -817,6 +688,7 @@ def verificar_y_enviar_resultados_individuales():
 
                 numero = resultado.split("-")[0].strip().zfill(2)
 
+                # VALIDACIÓN DE ACIERTOS CON FILTRO DE HORA ESTRICTO
                 if numero in RECOMENDADOS_HOY and numero not in ACIERTOS_HOY:
                     info_rec = RECOMENDADOS_HOY[numero]
                     hora_emision = info_rec["hora_emision"]
@@ -876,8 +748,8 @@ def verificar_minuto():
     ahora = datetime.now()
      
     hora_actual_minutos = ahora.hour * 60 + ahora.minute
-    inicio_minutos = 7 * 60 + 25
-    fin_minutos = 19 * 60 + 55
+    inicio_minutos = 7 * 60 + 25   # 07:25 AM
+    fin_minutos = 19 * 60 + 55     # 07:55 PM
 
     if not (inicio_minutos <= hora_actual_minutos <= fin_minutos):
         return
@@ -901,9 +773,7 @@ def cmd_resumen(message):
             return
 
         soup = BeautifulSoup(respuesta.text, 'html.parser')
-        tarjetas = soup.find_all(['div', 'article', 'section', 'ul', 'li'], class_=re.compile(r'card|box|item|lotto|result|col|row|block', re.IGNORECASE))
-        if not tarjetas:
-            tarjetas = soup.find_all('div')
+        tarjetas = soup.find_all(['div', 'article', 'section'], class_=re.compile(r'card|box|item|lotto|result', re.IGNORECASE))
 
         resumen_por_loterias = {}
 
@@ -1002,13 +872,13 @@ def loop_bot():
     schedule.every().day.at("07:00").do(enviar_efemeride_dia)
     schedule.every().day.at("06:31").do(enviar_piramide_diaria)
     schedule.every().day.at("06:45").do(enviar_regalos_diarios)
-    schedule.every().day.at("06:50").do(enviar_regalitos_guacharo)
     schedule.every().day.at("07:30").do(enviar_saludo_matutino)
      
     schedule.every().day.at("08:15").do(enviar_estudio_8am)
+    schedule.every().day.at("12:15").do(enviar_estudio_mediodia)
     schedule.every().day.at("16:15").do(enviar_estudio_tarde)
     
-    schedule.every().day.at("18:30").do(enviar_tasa_dolar)
+    schedule.every().day.at("15:30").do(enviar_tasa_dolar)
     schedule.every().day.at("20:00").do(enviar_mensaje_cierre)
     
     schedule.every().day.at("09:40").do(enviar_combinacion_diaria)
