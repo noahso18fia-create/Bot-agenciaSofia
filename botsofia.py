@@ -118,11 +118,11 @@ TRADUCCION_LOTERIAS = {
 # ==========================================
 
 HEADER_SOFIA = (
-    "🎯 AGENCIA SOFIA 🎯\n"
+    "*🎯 AGENCIA SOFIA 🎯*\n"
     "━━━━━━━━━━━━━━━━━━\n"
-    "🎲 🎰 {nombre_loteria} 🎲\n"
+    "*🎲 🎰*{nombre_loteria}* 🎲\n"
     "🕐 Hora: {hora}\n"
-    "🐾 Resultado: {resultado}\n"
+    "🐾 Resultado: *{resultado}*\n"
     "━━━━━━━━━━━━━━━━━━\n"
     "📲 04163199157"
 )
