@@ -34,7 +34,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 TOKEN = '8893057303:AAHi1D9GJEentjBJJB_6IdMNtSbQ2jxj7WQ'
 
-CANAL = '@agenciasofia'
+CANAL = '@agenciasofiaoficial'
 
 # Coloca aquí el enlace real de tu canal
 ENLACE_CANAL = 'https://t.me/agenciasofiaoficial'
