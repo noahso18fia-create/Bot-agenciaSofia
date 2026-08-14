@@ -1266,18 +1266,25 @@ def guardar_registros(enviados_set):
 # VERIFICAR Y ENVIAR RESULTADOS
 # ==========================================
 
+# ==========================================
+# VERIFICAR Y ENVIAR RESULTADOS
+# ==========================================
+
 def verificar_y_enviar_resultados_individuales():
 
-    enviados_hoy = cargar_registros()
+    print("\n🔄 Revisando resultados...")
 
-    es_primera_ejecucion = (
-        len(enviados_hoy) == 0
-    )
+    enviados_hoy = cargar_registros()
 
     try:
 
         headers = {
-            'User-Agent': 'Mozilla/5.0'
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 "
+                "(KHTML, like Gecko) "
+                "Chrome/130.0.0.0 Safari/537.36"
+            )
         }
 
         respuesta = requests.get(
@@ -1287,298 +1294,619 @@ def verificar_y_enviar_resultados_individuales():
         )
 
         if respuesta.status_code != 200:
+
+            print(
+                f"⚠️ Error página: "
+                f"{respuesta.status_code}"
+            )
+
             return
 
         soup = BeautifulSoup(
             respuesta.text,
-            'html.parser'
+            "html.parser"
         )
 
+        # ==========================================
+        # ANIMALES VÁLIDOS
+        # ==========================================
+
+        animales_validos = {
+            "BALLENA",
+            "DELFIN",
+            "CARNERO",
+            "TORO",
+            "CIEMPIÉS",
+            "CIEMPIES",
+            "ALACRÁN",
+            "ALACRAN",
+            "LEÓN",
+            "LEON",
+            "RANA",
+            "PERICO",
+            "RATÓN",
+            "RATON",
+            "ÁGUILA",
+            "AGUILA",
+            "TIGRE",
+            "GATO",
+            "CABALLO",
+            "MONO",
+            "PALOMA",
+            "ZORRO",
+            "OSO",
+            "PAVO",
+            "BURRO",
+            "CHIVO",
+            "COCHINO",
+            "GALLO",
+            "CAMELLO",
+            "CEBRA",
+            "IGUANA",
+            "GALLINA",
+            "VACA",
+            "PERRO",
+            "ZAMURO",
+            "ELEFANTE",
+            "CAIMÁN",
+            "CAIMAN",
+            "LAPA",
+            "ARDILLA",
+            "PESCADO",
+            "VENADO",
+            "JIRAFA",
+            "CULEBRA"
+        }
+
+        # ==========================================
+        # BUSCAR TARJETAS
+        # ==========================================
+
         tarjetas = soup.find_all(
-            ['div', 'article', 'section'],
+            ["div", "article", "section"],
             class_=re.compile(
-                r'card|box|item|lotto|result',
+                r"card|box|lotto|result",
                 re.IGNORECASE
             )
         )
 
-        hubo_cambios = False
+        print(
+            f"📦 Tarjetas encontradas: "
+            f"{len(tarjetas)}"
+        )
 
         nuevos_para_guardar = set(
             enviados_hoy
         )
 
+        resultados_procesados = set()
+
+        hubo_cambios = False
+
+        # ==========================================
+        # PROCESAR CADA TARJETA
+        # ==========================================
+
         for tarjeta in tarjetas:
 
-            nombre_loteria = ""
+            try:
 
-            posibles_titulos = tarjeta.find_all(
-                [
-                    'h1',
-                    'h2',
-                    'h3',
-                    'h4',
-                    'h5',
-                    'span',
-                    'div',
-                    'strong',
-                    'b'
-                ],
-                class_=re.compile(
-                    r'title|header|name|lotto|text',
-                    re.IGNORECASE
-                )
-            )
-
-            for pt in posibles_titulos:
-
-                t_text = pt.get_text(
+                texto_tarjeta = tarjeta.get_text(
                     " ",
                     strip=True
-                ).upper()
+                )
 
-                if (
-                    t_text
-                    and len(t_text) > 2
-                    and not re.search(
-                        r'\d{1,2}:\d{2}',
-                        t_text
-                    )
-                    and "PENDIENTE" not in t_text
+                if not texto_tarjeta:
+                    continue
+
+                texto_tarjeta = limpiar_texto(
+                    texto_tarjeta
+                )
+
+                texto_upper = texto_tarjeta.upper()
+
+                # ======================================
+                # BUSCAR NOMBRE DE LOTERÍA
+                # ======================================
+
+                nombre_loteria = ""
+
+                # Primero buscar títulos reales
+                for tag in tarjeta.find_all(
+                    [
+                        "h1",
+                        "h2",
+                        "h3",
+                        "h4",
+                        "h5",
+                        "strong",
+                        "b"
+                    ]
                 ):
 
-                    if t_text not in [
+                    texto = limpiar_texto(
+                        tag.get_text(
+                            " ",
+                            strip=True
+                        )
+                    ).upper()
+
+                    if not texto:
+                        continue
+
+                    if len(texto) > 40:
+                        continue
+
+                    if re.search(
+                        r"\d{1,2}:\d{2}",
+                        texto
+                    ):
+                        continue
+
+                    if "PENDIENTE" in texto:
+                        continue
+
+                    if texto in [
                         "WINBIG",
                         "RESULTADOS",
                         "RESULTADOS ANIMALITOS",
                         "ANIMALITOS"
                     ]:
+                        continue
 
-                        nombre_loteria = t_text
-                        break
-
-            if not nombre_loteria:
-
-                lineas = [
-                    l.strip().upper()
-                    for l in tarjeta
-                    .get_text(
-                        "\n",
-                        strip=True
-                    )
-                    .split("\n")
-                    if l.strip()
-                ]
-
-                for linea in lineas:
-
-                    if (
-                        len(linea) > 2
-                        and not re.search(
-                            r'\d{1,2}:\d{2}',
-                            linea
-                        )
-                        and "PENDIENTE" not in linea
-                        and "-" not in linea
-                    ):
-
-                        if linea not in [
-                            "RESULTADOS ANIMALITOS",
-                            "ANIMALITOS",
-                            "RESULTADOS"
-                        ]:
-
-                            nombre_loteria = linea
-                            break
-
-            if (
-                not nombre_loteria
-                or len(nombre_loteria) > 40
-            ):
-                continue
-
-            nombre_loteria_limpio = limpiar_texto(
-                nombre_loteria
-            )
-
-            nombre_loteria_ind = (
-                nombre_loteria_limpio
-            )
-
-            for sigla, nombre_largo in (
-                TRADUCCION_LOTERIAS.items()
-            ):
-
-                if (
-                    sigla in
-                    nombre_loteria_limpio.upper()
-                    or
-                    nombre_loteria_limpio.upper()
-                    == sigla
-                ):
-
-                    nombre_loteria_ind = (
-                        nombre_largo
-                    )
+                    nombre_loteria = texto
 
                     break
 
-            if (
-                "RULETA ROYAL"
-                in nombre_loteria_limpio.upper()
-                or
-                "RESULTADOS"
-                in nombre_loteria_limpio.upper()
-            ):
-                continue
+                # ======================================
+                # SEGUNDO MÉTODO
+                # ======================================
 
-            slots_sorteo = tarjeta.find_all(
-                [
-                    'div',
-                    'li',
-                    'span',
-                    'tr'
-                ],
-                class_=re.compile(
-                    r'item|slot|draw|row|col',
-                    re.IGNORECASE
-                )
-            )
+                if not nombre_loteria:
 
-            if not slots_sorteo:
-                slots_sorteo = [tarjeta]
+                    lineas = [
+                        limpiar_texto(x).upper()
+                        for x in tarjeta.get_text(
+                            "\n",
+                            strip=True
+                        ).split("\n")
+                        if x.strip()
+                    ]
 
-            for slot in slots_sorteo:
+                    for linea in lineas:
 
-                texto_slot = slot.get_text(
-                    " ",
-                    strip=True
-                ).upper()
+                        if len(linea) > 40:
+                            continue
 
-                if "PENDIENTE" in texto_slot:
+                        if re.search(
+                            r"\d{1,2}:\d{2}",
+                            linea
+                        ):
+                            continue
+
+                        if "PENDIENTE" in linea:
+                            continue
+
+                        if "-" in linea:
+                            continue
+
+                        if linea in [
+                            "WINBIG",
+                            "RESULTADOS",
+                            "RESULTADOS ANIMALITOS",
+                            "ANIMALITOS"
+                        ]:
+                            continue
+
+                        nombre_loteria = linea
+
+                        break
+
+                if not nombre_loteria:
                     continue
 
-                match_h = re.search(
-                    r'\b(\d{1,2}:\d{2}\s*(?:AM|PM))\b',
-                    texto_slot
+                # ======================================
+                # TRADUCIR LOTERÍA
+                # ======================================
+
+                nombre_loteria_ind = (
+                    nombre_loteria
                 )
 
-                if not match_h:
-                    continue
-
-                hora = match_h.group(1).upper()
-
-                match_res = re.search(
-                    r'(\d{1,2}\s*-\s*[A-ZÁÉÍÓÚÑa-zñáéíóú]+(?:\s+[A-ZÁÉÍÓÚÑa-zñáéíóú]+)?)',
-                    texto_slot
-                )
-
-                if not match_res:
-                    continue
-
-                resultado = limpiar_texto(
-                    match_res.group(1)
-                ).upper()
-
-                CONTEO_ANIMALES_HOY[
-                    resultado
-                ] = (
-                    CONTEO_ANIMALES_HOY.get(
-                        resultado,
-                        0
-                    ) + 1
-                )
-
-                numero = (
-                    resultado
-                    .split("-")[0]
-                    .strip()
-                    .zfill(2)
-                )
-
-                # ==================================
-                # DETECTAR ACIERTOS
-                # ==================================
-
-                if (
-                    numero in RECOMENDADOS_HOY
-                    and numero not in ACIERTOS_HOY
+                for sigla, nombre_largo in (
+                    TRADUCCION_LOTERIAS.items()
                 ):
 
-                    mensaje = (
-                        "🎉🎉 *¡ACERTAMOS!* 🎉🎉\n\n"
-                        f"✅ {RECOMENDADOS_HOY[numero]}\n\n"
-                        f"🎯 *{resultado}*\n"
-                        f"🎲 {nombre_loteria_ind}\n"
-                        f"🕒 {hora}\n\n"
-                        "🍀 ¡Felicidades!\n"
-                        "🎯 *AGENCIA SOFIA*\n"
-                        "📲 04163199157"
-                    )
+                    if (
+                        sigla in nombre_loteria
+                        or nombre_loteria == sigla
+                    ):
 
-                    enviar_telegram(mensaje)
+                        nombre_loteria_ind = (
+                            nombre_largo
+                        )
 
-                    ACIERTOS_HOY.add(numero)
+                        break
 
-                # ==================================
-                # ID ÚNICO DEL RESULTADO
-                # ==================================
-
-                id_resultado = (
-                    f"{nombre_loteria_ind}_"
-                    f"{hora}_"
-                    f"{resultado}"
-                )
-
-                # Primera ejecución:
-                # guarda lo existente sin enviarlo
-                if es_primera_ejecucion:
-
-                    nuevos_para_guardar.add(
-                        id_resultado
-                    )
-
+                if (
+                    "RULETA ROYAL"
+                    in nombre_loteria_ind
+                ):
                     continue
 
-                # Nuevo resultado
-                if id_resultado not in enviados_hoy:
+                # ======================================
+                # BUSCAR BLOQUES DE SORTEOS
+                # ======================================
 
-                    mensaje = HEADER_SOFIA.format(
-                        nombre_loteria=nombre_loteria_ind,
-                        hora=hora,
-                        resultado=resultado
+                bloques = tarjeta.find_all(
+                    [
+                        "li",
+                        "tr"
+                    ]
+                )
+
+                # Si no existen filas claras,
+                # usamos elementos con clases de sorteo
+                if not bloques:
+
+                    bloques = tarjeta.find_all(
+                        [
+                            "div",
+                            "span"
+                        ],
+                        class_=re.compile(
+                            r"item|slot|draw|row",
+                            re.IGNORECASE
+                        )
                     )
 
-                    enviar_telegram(
-                        mensaje,
-                        disable_web_preview=True
-                    )
+                # ======================================
+                # SI NO ENCUENTRA BLOQUES
+                # PROCESAR LA TARJETA COMPLETA
+                # ======================================
 
-                    nuevos_para_guardar.add(
-                        id_resultado
-                    )
+                if not bloques:
 
-                    hubo_cambios = True
+                    bloques = [tarjeta]
 
-                    time.sleep(1.5)
+                # ======================================
+                # PROCESAR CADA BLOQUE
+                # ======================================
 
-        if es_primera_ejecucion:
+                for bloque in bloques:
+
+                    try:
+
+                        texto = limpiar_texto(
+                            bloque.get_text(
+                                " ",
+                                strip=True
+                            )
+                        ).upper()
+
+                        if not texto:
+                            continue
+
+                        # ==================================
+                        # BUSCAR HORA
+                        # ==================================
+
+                        match_hora = re.search(
+                            r"\b(\d{1,2}:\d{2}\s*(?:AM|PM))\b",
+                            texto
+                        )
+
+                        if not match_hora:
+                            continue
+
+                        hora = (
+                            match_hora
+                            .group(1)
+                            .upper()
+                        )
+
+                        # ==================================
+                        # PENDIENTE
+                        # ==================================
+
+                        if "PENDIENTE" in texto:
+
+                            print(
+                                f"⏳ {nombre_loteria_ind} "
+                                f"| {hora} | PENDIENTE"
+                            )
+
+                            continue
+
+                        # ==================================
+                        # TEXTO DESPUÉS DE LA HORA
+                        # ==================================
+
+                        despues_hora = texto[
+                            match_hora.end():
+                        ]
+
+                        despues_hora = limpiar_texto(
+                            despues_hora
+                        )
+
+                        if not despues_hora:
+                            continue
+
+                        # ==================================
+                        # BUSCAR NÚMERO
+                        # ==================================
+
+                        match_numero = re.search(
+                            r"\b(0?\d|[12]\d|3[0-6])\b",
+                            despues_hora
+                        )
+
+                        if not match_numero:
+                            continue
+
+                        numero = int(
+                            match_numero.group(1)
+                        )
+
+                        numero_formateado = (
+                            str(numero).zfill(2)
+                        )
+
+                        # ==================================
+                        # BUSCAR ANIMAL
+                        # ==================================
+
+                        resto = despues_hora[
+                            match_numero.end():
+                        ]
+
+                        resto = limpiar_texto(
+                            resto
+                        )
+
+                        # Quitar guiones y símbolos
+                        resto_limpio = re.sub(
+                            r"^[\s\-–—:|]+",
+                            "",
+                            resto
+                        )
+
+                        palabras = re.findall(
+                            r"[A-ZÁÉÍÓÚÑ]+",
+                            resto_limpio
+                        )
+
+                        animal_encontrado = None
+
+                        for palabra in palabras:
+
+                            if (
+                                palabra
+                                in animales_validos
+                            ):
+
+                                animal_encontrado = (
+                                    palabra
+                                )
+
+                                break
+
+                        if not animal_encontrado:
+                            continue
+
+                        # ==================================
+                        # NORMALIZAR NOMBRE
+                        # ==================================
+
+                        equivalencias = {
+                            "CIEMPIES": "CIEMPIÉS",
+                            "ALACRAN": "ALACRÁN",
+                            "LEON": "LEÓN",
+                            "RATON": "RATÓN",
+                            "AGUILA": "ÁGUILA",
+                            "CAIMAN": "CAIMÁN"
+                        }
+
+                        animal_encontrado = (
+                            equivalencias.get(
+                                animal_encontrado,
+                                animal_encontrado
+                            )
+                        )
+
+                        resultado = (
+                            f"{numero_formateado} - "
+                            f"{animal_encontrado}"
+                        )
+
+                        # ==================================
+                        # EVITAR DUPLICADOS EN LA MISMA
+                        # REVISIÓN
+                        # ==================================
+
+                        clave = (
+                            f"{nombre_loteria_ind}|"
+                            f"{hora}|"
+                            f"{resultado}"
+                        )
+
+                        if clave in resultados_procesados:
+                            continue
+
+                        resultados_procesados.add(
+                            clave
+                        )
+
+                        print(
+                            f"✅ DETECTADO: "
+                            f"{nombre_loteria_ind} | "
+                            f"{hora} | "
+                            f"{resultado}"
+                        )
+
+                        # ==================================
+                        # CONTAR ANIMAL
+                        # ==================================
+
+                        CONTEO_ANIMALES_HOY[
+                            resultado
+                        ] = (
+                            CONTEO_ANIMALES_HOY.get(
+                                resultado,
+                                0
+                            ) + 1
+                        )
+
+                        # ==================================
+                        # DETECTAR ACIERTO
+                        # ==================================
+
+                        if (
+                            numero_formateado
+                            in RECOMENDADOS_HOY
+                            and
+                            numero_formateado
+                            not in ACIERTOS_HOY
+                        ):
+
+                            mensaje_acierto = (
+                                "🎉🎉 *¡ACERTAMOS!* 🎉🎉\n\n"
+                                f"✅ {RECOMENDADOS_HOY[numero_formateado]}\n\n"
+                                f"🎯 *{resultado}*\n"
+                                f"🎲 {nombre_loteria_ind}\n"
+                                f"🕒 {hora}\n\n"
+                                "🍀 ¡Felicidades!\n"
+                                "🎯 *AGENCIA SOFIA*\n"
+                                "📲 04163199157"
+                            )
+
+                            enviar_telegram(
+                                mensaje_acierto
+                            )
+
+                            ACIERTOS_HOY.add(
+                                numero_formateado
+                            )
+
+                        # ==================================
+                        # ID ÚNICO
+                        # ==================================
+
+                        id_resultado = (
+                            f"{nombre_loteria_ind}_"
+                            f"{hora}_"
+                            f"{resultado}"
+                        )
+
+                        # ==================================
+                        # PRIMERA EJECUCIÓN
+                        # ==================================
+
+                        if not enviados_hoy:
+
+                            nuevos_para_guardar.add(
+                                id_resultado
+                            )
+
+                            continue
+
+                        # ==================================
+                        # NUEVO RESULTADO
+                        # ==================================
+
+                        if (
+                            id_resultado
+                            not in enviados_hoy
+                        ):
+
+                            mensaje = (
+                                HEADER_SOFIA.format(
+                                    nombre_loteria=(
+                                        nombre_loteria_ind
+                                    ),
+                                    hora=hora,
+                                    resultado=resultado
+                                )
+                            )
+
+                            enviar_telegram(
+                                mensaje,
+                                disable_web_preview=True
+                            )
+
+                            nuevos_para_guardar.add(
+                                id_resultado
+                            )
+
+                            enviados_hoy.add(
+                                id_resultado
+                            )
+
+                            hubo_cambios = True
+
+                            print(
+                                f"📤 ENVIADO: "
+                                f"{nombre_loteria_ind} | "
+                                f"{hora} | "
+                                f"{resultado}"
+                            )
+
+                    except Exception as error_bloque:
+
+                        print(
+                            f"⚠️ Error en bloque: "
+                            f"{error_bloque}"
+                        )
+
+                        continue
+
+            except Exception as error_tarjeta:
+
+                print(
+                    f"⚠️ Error en tarjeta: "
+                    f"{error_tarjeta}"
+                )
+
+                continue
+
+        # ==========================================
+        # GUARDAR REGISTROS
+        # ==========================================
+
+        if nuevos_para_guardar != enviados_hoy:
 
             guardar_registros(
                 nuevos_para_guardar
             )
 
-        elif hubo_cambios:
-
-            guardar_registros(
-                nuevos_para_guardar
+            print(
+                "💾 Registros actualizados."
             )
-
-    except Exception as e:
 
         print(
-            "Error verificando resultados: "
-            f"{e}"
+            f"🏁 Revisión terminada. "
+            f"Resultados detectados: "
+            f"{len(resultados_procesados)}"
+        )
+
+    except requests.exceptions.Timeout:
+
+        print(
+            "⏱️ La página tardó demasiado en responder."
+        )
+
+    except requests.exceptions.RequestException as error:
+
+        print(
+            f"🌐 Error de conexión: {error}"
+        )
+
+    except Exception as error:
+
+        print(
+            f"❌ Error general verificando "
+            f"resultados: {error}"
         )
 
 
