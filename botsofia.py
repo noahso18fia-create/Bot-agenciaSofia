@@ -403,9 +403,14 @@ def enviar_piramide_diaria():
 def enviar_regalos_diarios():
     ahora = datetime.now()
     fecha_str = ahora.strftime("%d/%m/%Y")
-    seed_val = int(ahora.strftime("%Y%m%d")) + 99
+    
+    # Semilla única y desfasada para Sofía para evitar coincidencias con FyD
+    seed_val = int(ahora.strftime("%Y%m%d")) * 37 + 513
     rnd = random.Random(seed_val)
-    regalos_seleccionados = rnd.sample(ANIMALES_POOL, 3)
+    
+    pool_modificado = ANIMALES_POOL.copy()
+    rnd.shuffle(pool_modificado)
+    regalos_seleccionados = pool_modificado[:3]
      
     for animal in regalos_seleccionados:
         numero = animal.split(" - ")[0].zfill(2)
@@ -447,9 +452,11 @@ def seleccionar_analisis_dinamico(cantidad):
     if len(disponibles) < cantidad:
         disponibles = ANIMALES_POOL
 
-    seed_val = int(datetime.now().strftime("%Y%m%d%H%M"))
+    seed_val = int(datetime.now().strftime("%Y%m%d%H%M")) * 13 + 77
     rnd = random.Random(seed_val)
-    return rnd.sample(disponibles, cantidad)
+    pool_modificado = disponibles.copy()
+    rnd.shuffle(pool_modificado)
+    return pool_modificado[:cantidad]
 
 def enviar_combinacion_diaria():
     ahora = datetime.now()
@@ -458,9 +465,12 @@ def enviar_combinacion_diaria():
     if len(disponibles) < 7:
         disponibles = ANIMALES_POOL
 
-    seed_val = int(datetime.now().strftime("%Y%m%d%H%M%S"))
+    seed_val = int(datetime.now().strftime("%Y%m%d%H%M")) * 13 + 77
     rnd = random.Random(seed_val)
-    seleccionados = rnd.sample(disponibles, 7)
+    
+    pool_local = disponibles.copy()
+    rnd.shuffle(pool_local)
+    seleccionados = pool_local[:7]
 
     fijo1 = seleccionados[0]
     fijo2 = seleccionados[1]
