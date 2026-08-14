@@ -430,7 +430,7 @@ def enviar_piramide_diaria():
     except Exception as e:
         print(f"Error generando/enviando imagen pirámide: {e}")
 
-ddef enviar_regalos_diarios():
+def enviar_regalos_diarios():
     ahora = datetime.now()
     fecha_str = ahora.strftime("%d/%m/%Y")
 
@@ -461,7 +461,7 @@ ddef enviar_regalos_diarios():
 
     enviar_telegram(mensaje_regalos, disable_web_preview=True)
 
-ef enviar_regalitos_guacharo():
+def enviar_regalitos_guacharo():
     ahora = datetime.now()
     fecha_str = ahora.strftime("%d/%m/%Y")
 
@@ -544,7 +544,7 @@ def seleccionar_analisis_dinamico(cantidad):
     rnd = random.Random(seed_val)
     return rnd.sample(disponibles, cantidad)
 
-f enviar_combinacion_diaria():
+def enviar_combinacion_diaria():
     ahora = datetime.now()
 
     salidos = obtener_animales_salidos_actuales()
