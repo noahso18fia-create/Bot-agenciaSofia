@@ -28,11 +28,11 @@ from PIL import Image, ImageDraw, ImageFont
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # ==========================================
-# CONFIGURACIÓN DE CREDENCIALES Y ENLACES (Agencia Sofia)
+# CONFIGURACIÓN DE CREDENCIALES Y ENLACES (Sofia)
 # ==========================================
-TOKEN = '8893057303:AAHi1D9GJEentjBJJB_6IdMNtSbQ2jxj7WQ'
-CANAL = '@agenciasofiaoficial'
-ENLACE_CANAL = 'https://t.me/agenciasofiaoficial'
+TOKEN = '7691909067:AAG4EdkF0-_lpefI9ewFpo6AMhqawBZztAM'
+CANAL = '@agenciafyd'
+ENLACE_CANAL = 'https://t.me/+x4A5d5Jpu44yNzc5'
 
 bot = telebot.TeleBot(TOKEN)
 
@@ -43,6 +43,7 @@ URL_BCV = 'https://www.bcv.org.ve/'
 ARCH_REGISTRO = "resultados_enviados.json"
 
 # Variables globales para control de recomendaciones, aciertos y conteo diario de animales
+# Ahora guardamos la tupla: {"01": {"motivo": "Análisis 8:15 AM", "hora_emision": datetime_obj}}
 RECOMENDADOS_HOY = {}
 ACIERTOS_HOY = set()
 CONTEO_ANIMALES_HOY = {}
@@ -76,7 +77,7 @@ HEADER_Sofia = (
     "🎲 *{nombre_loteria}* 🎲\n"
     "Hora: {hora}\n"
     "Animalito: *{resultado}*\n\n"
-    "04163199157"
+    "04249611372"
 )
 
 app = Flask('')
@@ -87,7 +88,6 @@ def home():
         f"¡El bot de resultados individuales de la <b>Agencia Sofia</b> está activo en el canal {CANAL}!<br><br>"
         "<b>Enlaces de prueba rápida (Test):</b><br>"
         "👉 <a href='/test/madrugada'>Probar Saludo de Madrugada</a><br>"
-        "👉 <a href='/test/efemeride'>Probar Efeméride y Dato Oculto del Día</a><br>"
         "👉 <a href='/test/piramide'>Probar Pirámide Numérica (Imagen)</a><br>"
         "👉 <a href='/test/regalos'>Probar Regalos del Día</a><br>"
         "👉 <a href='/test/saludo'>Probar Saludo Matutino</a><br>"
@@ -107,11 +107,6 @@ def test_madrugada():
     enviar_saludo_madrugada()
     return "Prueba de Saludo de Madrugada ejecutada."
 
-@app.route('/test/efemeride')
-def test_efemeride():
-    enviar_efemeride_dia()
-    return "Prueba de Efeméride y Dato Oculto ejecutada."
-
 @app.route('/test/piramide')
 def test_piramide():
     enviar_piramide_diaria()
@@ -128,7 +123,7 @@ def test_saludo():
     return "Prueba de Saludo Matutino ejecutada."
 
 @app.route('/test/estudio_manana')
-def test_estudio_estudio_manana():
+def test_estudio_manana():
     enviar_estudio_8am()
     return "Prueba de Análisis de las 8 AM ejecutada."
 
@@ -162,12 +157,13 @@ def test_combinacion():
     enviar_combinacion_diaria()
     return "Prueba de Combinación Diaria ejecutada."
 
+
 @app.route('/test/forzar')
 def test_forzar():
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
     payload = {
         "chat_id": CANAL,
-        "text": "🚨 PRUEBA DIRECTA: Si lees esto, el bot tiene acceso total y perfecto al canal oficial.",
+        "text": "🚨 PRUEBA DIRECTA: Si lees esto, el bot tiene acceso total y perfecto al canal.",
         "parse_mode": "Markdown"
     }
     r = requests.post(url, json=payload)
@@ -200,68 +196,9 @@ def enviar_saludo_madrugada():
     enviar_telegram(
         "🎯 AGENCIA SOFIA 🎯\n\n"
         "*¡Activados desde temprano! 🌟 Que este día nos traiga mucha suerte y grandes jugadas. ¡Muy buenos días! 🔥*\n"
-        "WHATSAPP: 04163199157",
+        "WHATSAPP: 04249611372",
         disable_web_preview=True
     )
-
-def enviar_efemeride_dia():
-    ahora = datetime.now()
-    mes_dia = ahora.strftime("%m-%d")
-    fecha_str = ahora.strftime("%d/%m/%Y")
-
-    efemerides_db = {
-        "01-01": ("Año Nuevo y el Día Mundial de la Paz", "01 - Carnero"),
-        "01-14": ("Día de la Divina Pastora", "12 - Caballo"),
-        "02-04": ("Día Mundial contra el Cáncer", "05 - León"),
-        "02-14": ("Día del Amor y la Amistad", "11 - Gato"),
-        "03-08": ("Día Internacional de la Mujer", "26 - Vaca"),
-        "03-22": ("Día Mundial del Agua", "0 - Delfin"),
-        "04-19": ("Día de la Declaración de Independencia", "09 - Águila"),
-        "04-22": ("Día Internacional de la Madre Tierra", "30 - Caimán"),
-        "05-01": ("Día del Trabajador", "18 - Burro"),
-        "05-10": ("Día de la Afrovenezolanidad", "13 - Mono"),
-        "06-05": ("Día Mundial del Medio Ambiente", "23 - Cebra"),
-        "06-24": ("Batalla de Carabobo", "12 - Caballo"),
-        "07-05": ("Día de la Independencia de Venezuela", "09 - Águila"),
-        "07-24": ("Natalicio del Libertador Simón Bolívar", "05 - León"),
-        "08-03": ("Día de la Bandera Nacional", "09 - Águila"),
-        "08-14": ("Día Mundial del Lagarto", "24 - Iguana"),
-        "08-25": ("Día del Peluquero", "16 - Oso"),
-        "09-08": ("Día de la Virgen del Valle", "33 - Pescado"),
-        "10-12": ("Día de la Resistencia Indígena", "14 - Paloma"),
-        "10-31": ("Día de la Canción Criolla y Halloween", "36 - Culebra"),
-        "11-18": ("Día de la Chinita", "21 - Gallo"),
-        "12-24": ("Nochebuena", "27 - Perro"),
-        "12-31": ("Fin de Año y la Quema del Año Viejo", "28 - Zamuro")
-    }
-
-    if mes_dia in efemerides_db:
-        evento, animal_sugerido = efemerides_db[mes_dia]
-    else:
-        seed_val = int(ahora.strftime("%m%d"))
-        rnd = random.Random(seed_val)
-        eventos_comunes = [
-            ("Día de la buena vibra y la suerte en los negocios", rnd.choice(ANIMALES_POOL)),
-            ("Día de activar la suerte y reventar la pizarra", rnd.choice(ANIMALES_POOL)),
-            ("Día de buscar el billete y cobrar temprano", rnd.choice(ANIMALES_POOL)),
-            ("Día de la gran jugada maestra", rnd.choice(ANIMALES_POOL))
-        ]
-        evento, animal_sugerido = rnd.choice(eventos_comunes)
-
-    num_oculto = animal_sugerido.split(" - ")[0].zfill(2)
-    RECOMENDADOS_HOY[num_oculto] = {"motivo": f"✨ Dato Oculto por Efeméride ({evento})", "hora_emision": ahora}
-
-    mensaje = (
-        "🎯 *AGENCIA SOFIA* 🎯\n"
-        f"📅 *{fecha_str}* — ¡Buenos días mi gente!\n\n"
-        f"💡 *¿Sabías qué se celebra hoy?* Hoy se conmemora el *{evento}* 🌟.\n\n"
-        "Y como la suerte tiene sus señales, el sistema detectó un **dato oculto** directo de esta celebración para asegurar las jugadas:\n\n"
-        f"🔥 *Dato Oculto / Fijo del Día:* `{animal_sugerido}`\n\n"
-        "📲 *WHATSAPP:* 04163199157\n"
-        f"{ENLACE_CANAL}\n\n"
-        "¡A cobrar temprano con la energía de hoy! 🍀✨"
-    )
-    enviar_telegram(mensaje, disable_web_preview=True)
 
 def generar_imagen_piramide():
     ahora = datetime.now()
@@ -376,7 +313,7 @@ def generar_imagen_piramide():
     draw.text((img_width // 2, box_top + 115), f"📌 {d2}", fill=color_blanco, anchor="mm", font=font_data)
 
     footer_y = 955
-    draw.text((img_width // 2, footer_y), "WHATSAPP: 04163199157", fill=color_dorado_claro, anchor="mm", font=font_sub)
+    draw.text((img_width // 2, footer_y), "WHATSAPP: 04249611372", fill=color_dorado_claro, anchor="mm", font=font_sub)
 
     bio = BytesIO()
     bio.name = 'piramide_sofia.png'
@@ -391,7 +328,7 @@ def enviar_piramide_diaria():
         files = {'photo': foto_bio}
         data = {
             'chat_id': CANAL,
-            'caption': f"📢 *REPORTE TÁCTICO - LA PIRÁMIDE*\n\nWHATSAPP: 04163199157\n{ENLACE_CANAL}",
+            'caption': f"📢 *REPORTE TÁCTICO - LA PIRÁMIDE*\n\nWHATSAPP: 04249611372\n{ENLACE_CANAL}",
             'parse_mode': 'Markdown'
         }
         response = requests.post(url, data=data, files=files, timeout=15)
@@ -412,13 +349,13 @@ def enviar_regalos_diarios():
         RECOMENDADOS_HOY[numero] = {"motivo": "🎁 Regalo del Día", "hora_emision": ahora}
 
     mensaje_regalos = (
-        "🎁 *LOS REGALOS DE LA AGENCIA SOFIA* 🎁\n"
+        "🎁 *LOS REGALOS DE LA AGENCIA Sofia* 🎁\n"
         f"📅 Fecha: {fecha_str}\n\n"
         "¡Los fijos recomendados para reventar la banca hoy:\n\n"
         f"🌟 *1er Regalo:* {regalos_seleccionados[0]}\n"
         f"🌟 *2do Regalo:* {regalos_seleccionados[1]}\n"
         f"🌟 *3er Regalo:* {regalos_seleccionados[2]}\n\n"
-        "📲 WHATSAPP: 04163199157\n"
+        "📲 WHATSAPP: 04249611372\n"
         f"{ENLACE_CANAL}\n\n"
         "¡Mucha suerte en tus jugadas! 🍀✨"
     )
@@ -483,7 +420,7 @@ def enviar_combinacion_diaria():
         f"📌 *Fijos del Día:* `{fijo1}` y `{fijo2}`\n"
         f"📌 *El Par:* `{par_str}`\n"
         f"📌 *La Tripleta:* `{trip_str}`\n\n"
-        "📲 *WHATSAPP:* 04163199157\n"
+        "📲 *WHATSAPP:* 04249611372\n"
         f"{ENLACE_CANAL}\n\n"
         "¡A cobrar se ha dicho! 🍀✨"
     )
@@ -501,7 +438,7 @@ def enviar_estudio_8am():
         "🔍 *ANÁLISIS TRAS EL SORTEO DE LAS 8:00 AM* 🔍\n\n"
         "¡Ya salieron los primeros animalitos! Evaluando la apertura de la pizarra y descartando lo ya jugado, la casa trae las recomendaciones probables para los siguientes sorteos:\n\n"
         f"🔥 *Regalitos recomendados:* `{analisis[0]}` y `{analisis[1]}`\n\n"
-        "📲 *WHATSAPP:* 04163199157\n"
+        "📲 *WHATSAPP:* 04249611372\n"
         f"{ENLACE_CANAL}"
     )
     enviar_telegram(mensaje, disable_web_preview=True)
@@ -526,7 +463,7 @@ def enviar_estudio_mediodia():
         "*¡Mitad de jornada! Estudiando los resultados que nos dejó la mañana y analizando tendencias en vivo, el tablero apunta hacia las siguientes proyecciones:*\n\n"
         f"🔥 *Animales calientes:* `{analisis[0]}` y `{analisis[1]}`\n"
         f"🎯 *Tripleta recomendada:* `{t_str}`\n\n"
-        "📲 *WHATSAPP:* 04163199157\n"
+        "📲 *WHATSAPP:* 04249611372\n"
         f"{ENLACE_CANAL}"
     )
     enviar_telegram(mensaje, disable_web_preview=True)
@@ -541,9 +478,9 @@ def enviar_estudio_tarde():
     mensaje = (
         "🎯 *AGENCIA SOFIA* 🎯\n"
         "🌇 *ANÁLISIS Y CIERRE DE LA TARDE* 🌇\n\n"
-        "¡A pocas horas de terminar la jornada! Evaluando el comportamiento de los últimos sorteos y filtrando los ganadores del día, la casa trae los animales con mayor probabilidad de reventar para asegurar el cierre:\n\n"
+        "¡A pocas horas de terminar la jornada! Evaluando el comportamiento de los últimos sortos y filtrando los ganadores del día, la casa trae los animales con mayor probabilidad de reventar para asegurar el cierre:\n\n"
         f"⚡️ *Imparables de la Tarde / Cierre:* `{analisis[0]}` y `{analisis[1]}`\n\n"
-        "📲 *WHATSAPP:* 04163199157\n"
+        "📲 *WHATSAPP:* 04249611372\n"
         f"{ENLACE_CANAL}"
     )
     enviar_telegram(mensaje, disable_web_preview=True)
@@ -552,8 +489,7 @@ def enviar_saludo_matutino():
     enviar_telegram(
         "🎯 AGENCIA SOFIA 🎯\n\n"
         "☀️ ¡Buenos días! Arrancamos la jornada con la mejor actitud y la mejor energía para ganar.\n\n"
-        "📲 WHATSAPP: 04163199157\n"
-        f"{ENLACE_CANAL}\n"
+        "📲 WHATSAPP: 04249611372\n"
         "¡Mucho éxito en tus jugadas de hoy! 🍀🔥",
         disable_web_preview=True
     )
@@ -571,8 +507,7 @@ def enviar_tasa_dolar():
         enviar_telegram(
             "💵 TASA OFICIAL BCV 💵\n"
             f"📈 Precio Oficial: Bs. {precio_dolar}\n"
-            f"Verifica la tasa oficial en: {URL_BCV}\n"
-            f"{ENLACE_CANAL}",
+            f"Verifica la tasa oficial en: {URL_BCV}",
             disable_web_preview=True
         )
     except Exception as e:
@@ -582,8 +517,7 @@ def enviar_mensaje_cierre():
     enviar_telegram(
         "AGENCIA SOFIA\n"
         "🌙 ¡FINAL DE JORNADA! 🌙\n"
-        "*¡Listo por hoy! 🚀 Que descansen y sueñen en grande. Mañana nos vemos tempranito con más suerte y nuevos retos. ¡Buenas noches! 🌟💤*\n\n"
-        f"{ENLACE_CANAL}",
+        "*¡Listo por hoy! 🚀 Que descansen y sueñen en grande. Mañana nos vemos tempranito con más suerte y nuevos retos. ¡Buenas noches! 🌟💤*",
         disable_web_preview=True
     )
 
@@ -591,7 +525,7 @@ def enviar_aviso_cierre_sorteo():
     enviar_telegram(
         "🛑 *¡ATENCIÓN!* 🛑\n\n"
         "El tiempo de jugadas ha terminado por este sorteo en la **AGENCIA SOFIA**.\n\n"
-        f"🤞 ¡Cruzamos los dedos por ti, mucha suerte en tus apuestas! 🎲🔥\n{ENLACE_CANAL}",
+        "🤞 ¡Cruzamos los dedos por ti, mucha suerte en tus apuestas! 🎲🔥",
         disable_web_preview=True
     )
 
@@ -688,16 +622,19 @@ def verificar_y_enviar_resultados_individuales():
 
                 numero = resultado.split("-")[0].strip().zfill(2)
 
-                # VALIDACIÓN DE ACIERTOS CON FILTRO DE HORA ESTRICTO
+                # VALIDACIÓN DE ACIERTOS CON FILTRO DE HORA
                 if numero in RECOMENDADOS_HOY and numero not in ACIERTOS_HOY:
                     info_rec = RECOMENDADOS_HOY[numero]
                     hora_emision = info_rec["hora_emision"]
                     
+                    # Convertir la hora del sorteo (ej. "01:00 PM") a objeto time para comparar de forma estricta
                     try:
                         hora_limpia = hora_sorteo_str.replace(" ", "")
                         dt_sorteo = datetime.strptime(hora_limpia, "%I:%M%p")
+                        # Asignar la misma fecha actual para comparar con datetime completo
                         hora_sorteo_dt = datetime.now().replace(hour=dt_sorteo.hour, minute=dt_sorteo.minute, second=0, microsecond=0)
                         
+                        # Si el sorteo ocurrió DESPUÉS de que el bot emitió la recomendación, se celebra
                         if hora_sorteo_dt >= hora_emision:
                             mensaje = (
                                 "🎉🎉 *¡ACERTAMOS!* 🎉🎉\n\n"
@@ -705,8 +642,7 @@ def verificar_y_enviar_resultados_individuales():
                                 f"🎯 *{resultado}*\n"
                                 f"🎲 {nombre_loteria_ind}\n"
                                 f"🕒 {hora_sorteo_str}\n\n"
-                                f"🍀 *¡Felicidades a todos los que confiaron en Agencia Sofia!*\n"
-                                f"{ENLACE_CANAL}"
+                                "🍀 *¡Felicidades a todos los que confiaron en Agencia Sofia!*"
                             )
                             enviar_telegram(mensaje)
                             ACIERTOS_HOY.add(numero)
@@ -726,8 +662,7 @@ def verificar_y_enviar_resultados_individuales():
                         nombre_loteria=nombre_loteria_ind,
                         hora=hora_sorteo_str,
                         resultado=resultado
-                    ) + f"\n{ENLACE_CANAL}"
-                    
+                    )
                     enviar_telegram(mensaje)
                     nuevos_para_guardar.add(id_resultado)
                     hubo_cambios = True
@@ -856,11 +791,11 @@ def cmd_resumen(message):
                     texto_final += f"  {item}\n"
                 texto_final += "\n"
 
-        texto_final += f"📲 *WHATSAPP:* 04163199157\n{ENLACE_CANAL}"
+        texto_final += f"📲 *WHATSAPP:* 04249611372\n{ENLACE_CANAL}"
 
         if len(texto_final) > 4000:
             for x in range(0, len(texto_final), 4000):
-            	bot.send_message(message.chat.id, texto_final[x:x+4000], parse_mode="Markdown")
+                bot.send_message(message.chat.id, texto_final[x:x+4000], parse_mode="Markdown")
         else:
             bot.send_message(message.chat.id, texto_final, parse_mode="Markdown")
 
@@ -869,10 +804,9 @@ def cmd_resumen(message):
         bot.reply_to(message, f"⚠️ Error técnico: {str(e)}")
 
 def loop_bot():
-    schedule.every().day.at("07:00").do(enviar_efemeride_dia)
     schedule.every().day.at("06:31").do(enviar_piramide_diaria)
     schedule.every().day.at("06:45").do(enviar_regalos_diarios)
-    schedule.every().day.at("07:30").do(enviar_saludo_matutino)
+    schedule.every().day.at("07:00").do(enviar_saludo_matutino)
      
     schedule.every().day.at("08:15").do(enviar_estudio_8am)
     schedule.every().day.at("12:15").do(enviar_estudio_mediodia)
@@ -881,10 +815,12 @@ def loop_bot():
     schedule.every().day.at("15:30").do(enviar_tasa_dolar)
     schedule.every().day.at("20:00").do(enviar_mensaje_cierre)
     
+    # Horario programado para las combinaciones automáticas diarias
     schedule.every().day.at("09:40").do(enviar_combinacion_diaria)
     schedule.every().day.at("13:30").do(enviar_combinacion_diaria)
     schedule.every().day.at("17:30").do(enviar_combinacion_diaria)
 
+    # Horario programado a las 12:01 AM para reiniciar las recomendaciones y conteo diario
     schedule.every().day.at("00:01").do(limpiar_recomendaciones_diarias)
     
     schedule.every(1).minutes.do(verificar_y_enviar_resultados_individuales)
