@@ -430,115 +430,59 @@ def enviar_piramide_diaria():
     except Exception as e:
         print(f"Error generando/enviando imagen pirámide: {e}")
 
-def enviar_regalos_diarios():
+ddef enviar_regalos_diarios():
     ahora = datetime.now()
     fecha_str = ahora.strftime("%d/%m/%Y")
 
-    # ==========================================================
-    # REGALOS DEL OTRO BOT
-    # Deben ser exactamente los mismos que genera tu otro bot
-    # ==========================================================
-    seed_otro_bot = int(ahora.strftime("%Y%m%d")) + 99
-    rnd_otro_bot = random.Random(seed_otro_bot)
+    # Aleatorio independiente de Agencia FyD
+    seed_val = int(ahora.strftime("%Y%m%d")) + 48291
+    rnd = random.Random(seed_val)
 
-    regalos_otro_bot = rnd_otro_bot.sample(ANIMALES_POOL, 3)
+    regalos_seleccionados = rnd.sample(ANIMALES_POOL, 3)
 
-    numeros_otro_bot = set()
-
-    for animal in regalos_otro_bot:
-        numero = animal.split(" - ")[0].strip()
-
-        if numero.isdigit():
-            numero = f"{int(numero):02d}"
-
-        numeros_otro_bot.add(numero)
-
-    print("🎁 Regalos del otro bot:", numeros_otro_bot)
-
-    # ==========================================================
-    # REGALOS AGENCIA SOFIA
-    # Se seleccionan únicamente del 00 al 36
-    # EXCLUYENDO los que ya usa el otro bot
-    # ==========================================================
-    disponibles_sofia = []
-
-    for animal in ANIMALES_POOL:
-        numero = animal.split(" - ")[0].strip()
-
-        if numero.isdigit():
-            numero_normalizado = f"{int(numero):02d}"
-        else:
-            numero_normalizado = numero
-
-        if numero_normalizado not in numeros_otro_bot:
-            disponibles_sofia.append(animal)
-
-    # Semilla diferente para que Sofia tenga una selección propia
-    seed_sofia = int(ahora.strftime("%Y%m%d")) + 2026
-    rnd_sofia = random.Random(seed_sofia)
-
-    regalos_seleccionados = rnd_sofia.sample(disponibles_sofia, 3)
-
-    # ==========================================================
-    # REGISTRAR LOS REGALOS DE SOFIA
-    # ==========================================================
     for animal in regalos_seleccionados:
-        numero = animal.split(" - ")[0].strip()
-
-        if numero.isdigit():
-            numero = f"{int(numero):02d}"
-
+        numero = animal.split(" - ")[0].zfill(2)
         RECOMENDADOS_HOY[numero] = {
             "motivo": "🎁 Regalo del Día - Agencia Sofia",
             "hora_emision": ahora
         }
 
-    # ==========================================================
-    # MENSAJE
-    # ==========================================================
     mensaje_regalos = (
         "🎁 *LOS REGALOS DE LA AGENCIA SOFIA* 🎁\n"
         f"📅 Fecha: {fecha_str}\n\n"
-        "🔥 *Regalitos exclusivos de Agencia Sofia:*\n\n"
+        "¡Los fijos recomendados para reventar la banca hoy:\n\n"
         f"🌟 *1er Regalo:* {regalos_seleccionados[0]}\n"
         f"🌟 *2do Regalo:* {regalos_seleccionados[1]}\n"
         f"🌟 *3er Regalo:* {regalos_seleccionados[2]}\n\n"
         "📲 WHATSAPP: 04163199157\n"
         f"{ENLACE_CANAL}\n\n"
-        "🍀 ¡Mucha suerte en tus jugadas!"
+        "¡Mucha suerte en tus jugadas! 🍀✨"
     )
 
     enviar_telegram(mensaje_regalos, disable_web_preview=True)
-def enviar_regalitos_guacharo():
+
+ef enviar_regalitos_guacharo():
     ahora = datetime.now()
     fecha_str = ahora.strftime("%d/%m/%Y")
 
-    # ==========================================
-    # REGALITOS EXCLUSIVOS - GUÁCHARO ACTIVO
-    # ==========================================
-    # Semilla diaria: los 5 regalitos se mantienen
-    # iguales durante todo el día y cambian mañana.
-    seed_val = int(ahora.strftime("%Y%m%d")) + 7575
+    # Aleatorio independiente para Guácharo de Agencia Sofia
+    seed_val = int(ahora.strftime("%Y%m%d")) + 91357
     rnd = random.Random(seed_val)
 
-    # Seleccionar exactamente 5 animales diferentes
     regalitos = rnd.sample(ANIMALES_GUACHARO, 5)
 
-    # Registrar los números como recomendaciones
     for animal in regalitos:
         partes = animal.split(" - ", 1)
         numero = partes[0].strip()
 
-        # Normalizar 0 -> 00 y números de 1 dígito -> 01, 02...
         if numero.isdigit():
             numero = f"{int(numero):02d}"
 
         RECOMENDADOS_HOY[numero] = {
-            "motivo": "🦜 Regalito del Día - Guácharo Activo",
+            "motivo": "🦜 Regalito del Día - Guácharo Activo Sofia",
             "hora_emision": ahora
         }
 
-    # Normalizar presentación de cada regalito
     regalos_formateados = []
 
     for animal in regalitos:
@@ -600,102 +544,151 @@ def seleccionar_analisis_dinamico(cantidad):
     rnd = random.Random(seed_val)
     return rnd.sample(disponibles, cantidad)
 
-def enviar_combinacion_diaria():
+f enviar_combinacion_diaria():
     ahora = datetime.now()
-    salidos = obtener_animales_salidos_actuales()
-    disponibles = [a for a in ANIMALES_POOL if a.split(" - ")[0].zfill(2) not in salidos]
-    if len(disponibles) < 7:
-        disponibles = ANIMALES_POOL
 
-    seed_val = int(datetime.now().strftime("%Y%m%d%H%M%S"))
+    salidos = obtener_animales_salidos_actuales()
+    disponibles = [
+        a for a in ANIMALES_POOL
+        if a.split(" - ")[0].zfill(2) not in salidos
+    ]
+
+    if len(disponibles) < 7:
+        disponibles = ANIMALES_POOL.copy()
+
+    # Aleatorio independiente de Agencia FyD
+    seed_val = int(ahora.strftime("%Y%m%d%H%M%S")) + 63847
     rnd = random.Random(seed_val)
+
     seleccionados = rnd.sample(disponibles, 7)
 
     fijo1 = seleccionados[0]
     fijo2 = seleccionados[1]
+
     par1 = seleccionados[2]
     par2 = seleccionados[3]
+
     trip1 = seleccionados[4]
     trip2 = seleccionados[5]
     trip3 = seleccionados[6]
 
     for animal in seleccionados:
         num = animal.split(" - ")[0].zfill(2)
-        RECOMENDADOS_HOY[num] = {"motivo": "🎯 Combinación Especial Sofia", "hora_emision": ahora}
 
-    par_str = f"{par1.split(' - ')[0]} - {par2.split(' - ')[0]}"
-    trip_str = f"{trip1.split(' - ')[0]} - {trip2.split(' - ')[0]} - {trip3.split(' - ')[0]}"
+        RECOMENDADOS_HOY[num] = {
+            "motivo": "🎯 Combinación Especial Sofia",
+            "hora_emision": ahora
+        }
+
+    par_str = (
+        f"{par1.split(' - ')[0]} - "
+        f"{par2.split(' - ')[0]}"
+    )
+
+    trip_str = (
+        f"{trip1.split(' - ')[0]} - "
+        f"{trip2.split(' - ')[0]} - "
+        f"{trip3.split(' - ')[0]}"
+    )
 
     mensaje = (
         "🎯 *COMBINACIÓN GANADORA - AGENCIA SOFIA* 🎯\n"
-        "🔥 ¡Datos exclusivos y directos para asegurar tus jugadas:\n\n"
+        "🔥 ¡Datos exclusivos y directos para tus jugadas:\n\n"
         f"📌 *Fijos del Día:* `{fijo1}` y `{fijo2}`\n"
         f"📌 *El Par:* `{par_str}`\n"
         f"📌 *La Tripleta:* `{trip_str}`\n\n"
-        "📲 *WHATSAPP:* 04163199157\n"
+        "📲 WHATSAPP: 04163199157\n"
         f"{ENLACE_CANAL}\n\n"
         "¡A cobrar se ha dicho! 🍀✨"
     )
+
     enviar_telegram(mensaje, disable_web_preview=True)
+
+
 
 def enviar_estudio_8am():
     ahora = datetime.now()
-    analisis = seleccionar_analisis_dinamico(2)
+
+    salidos = obtener_animales_salidos_actuales()
+
+    disponibles = [
+        a for a in ANIMALES_POOL
+        if a.split(" - ")[0].zfill(2) not in salidos
+    ]
+
+    if len(disponibles) < 2:
+        disponibles = ANIMALES_POOL.copy()
+
+    # Aleatorio independiente para el análisis de Sofia
+    seed_val = int(ahora.strftime("%Y%m%d%H%M")) + 72461
+    rnd = random.Random(seed_val)
+
+    analisis = rnd.sample(disponibles, 2)
+
     for animal in analisis:
         numero = animal.split(" - ")[0].zfill(2)
-        RECOMENDADOS_HOY[numero] = {"motivo": "🔍 Análisis 8:15 AM", "hora_emision": ahora}
+
+        RECOMENDADOS_HOY[numero] = {
+            "motivo": "🔍 Análisis 8:15 AM - Sofia",
+            "hora_emision": ahora
+        }
 
     mensaje = (
         "🎯 *AGENCIA SOFIA* 🎯\n"
         "🔍 *ANÁLISIS TRAS EL SORTEO DE LAS 8:00 AM* 🔍\n\n"
-        "¡Ya salieron los primeros animalitos! Evaluando la apertura de la pizarra y descartando lo ya jugado, la casa trae las recomendaciones probables para los siguientes sorteos:\n\n"
+        "¡Ya salieron los primeros animalitos! "
+        "Evaluando la apertura de la pizarra y descartando lo ya jugado, "
+        "el sistema trae las siguientes recomendaciones:\n\n"
         f"🔥 *Regalitos recomendados:* `{analisis[0]}` y `{analisis[1]}`\n\n"
-        "📲 *WHATSAPP:* 04163199157\n"
+        "📲 WHATSAPP: 04163199157\n"
         f"{ENLACE_CANAL}"
     )
+
     enviar_telegram(mensaje, disable_web_preview=True)
 
-def enviar_estudio_mediodia():
-    ahora = datetime.now()
-    analisis = seleccionar_analisis_dinamico(2)
-    for animal in analisis:
-        numero = animal.split(" - ")[0].zfill(2)
-        RECOMENDADOS_HOY[numero] = {"motivo": "☀️ Análisis Mediodía", "hora_emision": ahora}
-
-    tripleta = seleccionar_analisis_dinamico(3)
-    for animal in tripleta:
-        numero = animal.split(" - ")[0].zfill(2)
-        RECOMENDADOS_HOY[numero] = {"motivo": "🎯 Tripleta Mediodía", "hora_emision": ahora}
-
-    t_str = f"{tripleta[0].split(' - ')[0]} - {tripleta[1].split(' - ')[0]} - {tripleta[2].split(' - ')[0]}"
-     
-    mensaje = (
-        "🎯 *AGENCIA SOFIA* 🎯\n"
-        "☀️ *ANÁLISIS DEL MEDIODÍA* ☀️\n\n"
-        "*¡Mitad de jornada! Estudiando los resultados que nos dejó la mañana y analizando tendencias en vivo, el tablero apunta hacia las siguientes proyecciones:*\n\n"
-        f"🔥 *Animales calientes:* `{analisis[0]}` y `{analisis[1]}`\n"
-        f"🎯 *Tripleta recomendada:* `{t_str}`\n\n"
-        "📲 *WHATSAPP:* 04163199157\n"
-        f"{ENLACE_CANAL}"
-    )
-    enviar_telegram(mensaje, disable_web_preview=True)
 
 def enviar_estudio_tarde():
     ahora = datetime.now()
-    analisis = seleccionar_analisis_dinamico(2)
+
+    salidos = obtener_animales_salidos_actuales()
+
+    disponibles = [
+        a for a in ANIMALES_POOL
+        if a.split(" - ")[0].zfill(2) not in salidos
+    ]
+
+    if len(disponibles) < 2:
+        disponibles = ANIMALES_POOL.copy()
+
+    # Aleatorio independiente para el análisis de la tarde
+    seed_val = int(ahora.strftime("%Y%m%d%H%M")) + 94673
+    rnd = random.Random(seed_val)
+
+    analisis = rnd.sample(disponibles, 2)
+
     for animal in analisis:
         numero = animal.split(" - ")[0].zfill(2)
-        RECOMENDADOS_HOY[numero] = {"motivo": "🌇 Análisis Tarde", "hora_emision": ahora}
+
+        RECOMENDADOS_HOY[numero] = {
+            "motivo": "🌇 Análisis Tarde - Sofia",
+            "hora_emision": ahora
+        }
 
     mensaje = (
         "🎯 *AGENCIA SOFIA* 🎯\n"
         "🌇 *ANÁLISIS Y CIERRE DE LA TARDE* 🌇\n\n"
-        "¡A pocas horas de terminar la jornada! Evaluando el comportamiento de los últimos sorteos y filtrando los ganadores del día, la casa trae los animales con mayor probabilidad de reventar para asegurar el cierre:\n\n"
-        f"⚡️ *Imparables de la Tarde / Cierre:* `{analisis[0]}` y `{analisis[1]}`\n\n"
-        "📲 *WHATSAPP:* 04163199157\n"
+        "¡A pocas horas de terminar la jornada! Evaluando el comportamiento "
+        "de los últimos sorteos y filtrando los ganadores del día, "
+        "el sistema trae los animales para el cierre:\n\n"
+        f"⚡️ *Imparables de la Tarde / Cierre:* "
+        f"`{analisis[0]}` y `{analisis[1]}`\n\n"
+        "📲 WHATSAPP: 04163199157\n"
         f"{ENLACE_CANAL}"
     )
+
     enviar_telegram(mensaje, disable_web_preview=True)
+
+
 
 def enviar_saludo_matutino():
     enviar_telegram(
