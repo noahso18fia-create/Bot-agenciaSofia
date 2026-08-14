@@ -30,9 +30,9 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # ==========================================
 # CONFIGURACIÓN DE CREDENCIALES Y ENLACES (Sofia)
 # ==========================================
-TOKEN = '7691909067:AAG4EdkF0-_lpefI9ewFpo6AMhqawBZztAM'
-CANAL = '@agenciafyd'
-ENLACE_CANAL = 'https://t.me/+x4A5d5Jpu44yNzc5'
+TOKEN = '8893057303:AAHi1D9GJEentjBJJB_6IdMNtSbQ2jxj7WQ'
+CANAL = '@agenciasofiaoficial'
+ENLACE_CANAL = 'https://t.me/agenciasofiaoficial'
 
 bot = telebot.TeleBot(TOKEN)
 
