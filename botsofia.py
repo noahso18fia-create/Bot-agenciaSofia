@@ -1575,15 +1575,11 @@ def loop_bot():
     ).do(
         enviar_saludo_matutino
     )
-
-    )
-
+    
     schedule.every().day.at(
         "09:40"
     ).do(
         enviar_combinacion_diaria
-    )
-
     )
 
     schedule.every().day.at(
