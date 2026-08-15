@@ -29,9 +29,9 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # ==========================================
 # CONFIGURACIÓN DE CREDENCIALES Y ENLACES (Agencia Sofía)
 # ==========================================
-TOKEN = 'TU_TOKEN_DE_TELEGRAM_AQUI'  # Reemplaza con el token del bot de Sofía
+TOKEN = '8893057303:AAHi1D9GJEentjBJJB_6IdMNtSbQ2jxj7WQ'
 CANAL = '@agenciasofia'                # Reemplaza con el canal de Sofía
-ENLACE_CANAL = 'https://t.me/tu_enlace_de_invitacion' # Reemplaza con el enlace de tu canal
+ENLACE_CANAL = 'https://t.me/agenciasofiaoficial' # Reemplaza con el enlace de tu canal
 
 bot = telebot.TeleBot(TOKEN)
 
