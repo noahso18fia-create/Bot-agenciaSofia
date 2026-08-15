@@ -69,6 +69,38 @@ MENSAJES_AUTOMATICOS = [
     f"🏆 ¡Juega, acierta y cobra seguro con *Agencia Sofía*! Escríbenos al WhatsApp.\n📲 04163199157"
 ]
 
+# ==========================================
+# PUBLICIDADES DE CASHEA FIJAS (4 HORARIOS)
+# ==========================================
+PUBLICIDAD_CASHEA_9AM = (
+    "💳 ¡**CASHEA ACTIVO** en **Agencia Sofía**! 🚀\n"
+    "Arranca tu día con la mejor facilidad. Ahora puedes jugar y asegurar tus animalitos favoritos "
+    "pagando después en 💰 **cómodas cuotas** y ✨ **sin inicial**.\n"
+    "🔒 100% seguro y confiable para todos nuestros apostadores.\n"
+    f"📲 WhatsApp: 04163199157\n{ENLACE_CANAL}"
+)
+
+PUBLICIDAD_CASHEA_12PM = (
+    "✨ ¿Mitad de día y con ganas de probar tu suerte? 🎰\n"
+    "Recuerda que tenemos **CASHEA ACTIVO** 💳: ✨ **sin inicial** y 💰 **cómodas cuotas** "
+    "para que juegues ahora y pagues después de forma 🔒 **100% segura**.\n"
+    f"📲 WhatsApp: 04163199157\n{ENLACE_CANAL}"
+)
+
+PUBLICIDAD_CASHEA_3PM = (
+    "⭐ ¡No pares tu buena racha de la tarde! 🚀\n"
+    "Utiliza **CASHEA ACTIVO** en **Agencia Sofía** 💳. Disfruta de 💰 **cómodas cuotas** "
+    "y ✨ **sin inicial** para tus jugadas. ¡Un sistema 🔒 **100% seguro** pensado para ti!\n"
+    f"📲 WhatsApp: 04163199157\n{ENLACE_CANAL}"
+)
+
+PUBLICIDAD_CASHEA_430PM = (
+    "🔥 ¡Última llamada de la tarde con **CASHEA ACTIVO**! 💳\n"
+    "No te quedes sin hacer tu jugada ganadora. Juega ahora y paga después con ✨ **sin inicial**, "
+    "aprovechando las 💰 **cómodas cuotas** de forma 🔒 **100% segura**.\n"
+    f"📲 Escríbenos ya al WhatsApp: 04163199157\n{ENLACE_CANAL}"
+)
+
 ANIMALES_POOL = [
     "00 - Ballena", "0- Delfin","01 - Carnero", "02 - Toro", "03 - Ciempiés", "04 - Alacrán", 
     "05 - León", "06 - Rana", "07 - Perico", "08 - Ratón", "09 - Águila", 
@@ -109,7 +141,7 @@ def home():
         "<b>Enlaces de prueba rápida (Test):</b><br>"
         "👉 <a href='/test/madrugada'>Probar Saludo de Madrugada</a><br>"
         "👉 <a href='/test/piramide'>Probar Pirámide Numérica (Imagen)</a><br>"
-        "👉 <a href='/test/regalos'>Probar Regalos del Día (Aleatorios)</a><br>"
+        "👉 <a href='/test/regalos'>Probar Regalos del Día (Análisis)</a><br>"
         "👉 <a href='/test/saludo'>Probar Saludo Matutino</a><br>"
         "👉 <a href='/test/estudio_manana'>Probar Análisis de las 8 AM</a><br>"
         "👉 <a href='/test/estudio_mediodia'>Probar Análisis del Mediodía</a><br>"
@@ -117,7 +149,8 @@ def home():
         "👉 <a href='/test/bcv'>Probar Tasa Oficial BCV</a><br>"
         "👉 <a href='/test/sorteo'>Probar Cierre de Sorteo (Min 25/55)</a><br>"
         "👉 <a href='/test/cierre'>Probar Cierre de Jornada (8:00 PM)</a><br>"
-        "👉 <a href='/test/combinacion'>Probar Combinación Diaria (Análisis)</a>"
+        "👉 <a href='/test/combinacion'>Probar Combinación Diaria (Análisis)</a><br>"
+        "👉 <a href='/test/publicidad_cashea'>Probar Publicidad Cashea</a>"
     )
 
 @app.route('/ping')
@@ -179,6 +212,11 @@ def test_combinacion():
     enviar_combinacion_diaria()
     return "Prueba de Combinación Diaria ejecutada."
 
+@app.route('/test/publicidad_cashea')
+def test_publicidad_cashea():
+    enviar_publicidad_cashea_9am()
+    return "Prueba de Publicidad Cashea ejecutada."
+
 def limpiar_texto(texto):
     return " ".join(texto.split())
 
@@ -214,6 +252,21 @@ def enviar_mensaje_automatico():
             
     ULTIMO_INDICE_MENSAJE = indice
     enviar_telegram(MENSAJES_AUTOMATICOS[indice], disable_web_preview=True)
+
+# ==========================================
+# FUNCIONES DE ENVÍO PARA CADA HORARIO DE CASHEA
+# ==========================================
+def enviar_publicidad_cashea_9am():
+    enviar_telegram(PUBLICIDAD_CASHEA_9AM, disable_web_preview=True)
+
+def enviar_publicidad_cashea_12pm():
+    enviar_telegram(PUBLICIDAD_CASHEA_12PM, disable_web_preview=True)
+
+def enviar_publicidad_cashea_3pm():
+    enviar_telegram(PUBLICIDAD_CASHEA_3PM, disable_web_preview=True)
+
+def enviar_publicidad_cashea_430pm():
+    enviar_telegram(PUBLICIDAD_CASHEA_430PM, disable_web_preview=True)
 
 def enviar_saludo_madrugada():
     enviar_telegram(
@@ -386,17 +439,14 @@ def seleccionar_analisis_dinamico(cantidad):
     rnd = random.Random(seed_val)
     return rnd.sample(disponibles, cantidad)
 
-# --- MODIFICADO: Regalos de la mañana (3 totalmente aleatorios) ---
 def enviar_regalos_diarios():
     ahora = datetime.now()
     fecha_str = ahora.strftime("%d/%m/%Y")
-    
-    # Selección 100% aleatoria de 3 animalitos para la mañana
-    regalos_seleccionados = random.sample(ANIMALES_POOL, 3)
+    regalos_seleccionados = seleccionar_analisis_dinamico(3)
      
     for animal in regalos_seleccionados:
         numero = animal.split(" - ")[0].zfill(2)
-        RECOMENDADOS_HOY[numero] = "🎁 Regalo del Día (Aleatorio)"
+        RECOMENDADOS_HOY[numero] = "🎁 Regalo del Día (Análisis)"
 
     mensaje_regalos = (
         "🎯 *AGENCIA SOFIA* 🎯\n"
@@ -404,7 +454,7 @@ def enviar_regalos_diarios():
         "🎁 *LOS REGALOS DEL DÍA* 🎁\n"
         f"📅 Fecha: {fecha_str}\n"
         "━━━━━━━━━━━━━━━━━━\n\n"
-        "🔥 *¡Los fijos recomendados de la mañana para reventar la banca hoy:* 🔥\n\n"
+        "🔥 *¡Estudio del tablero en vivo, los fijos recomendados para reventar la banca hoy:* 🔥\n\n"
         f"🌟 *1er Regalo:* `{regalos_seleccionados[0]}`\n"
         f"🌟 *2do Regalo:* `{regalos_seleccionados[1]}`\n"
         f"🌟 *3er Regalo:* `{regalos_seleccionados[2]}`\n\n"
@@ -483,20 +533,17 @@ def enviar_estudio_mediodia():
     )
     enviar_telegram(mensaje, disable_web_preview=True)
 
-# --- MODIFICADO: Estudio/Regalos de la tarde por análisis dinámico ---
 def enviar_estudio_tarde():
-    analisis = seleccionar_analisis_dinamico(3) # Cambiado a 3 para mantener la línea de regalos de tarde si lo deseas
+    analisis = seleccionar_analisis_dinamico(2)
     for animal in analisis:
         numero = animal.split(" - ")[0].zfill(2)
-        RECOMENDADOS_HOY[numero] = "🌇 Regalos por Análisis de Tarde"
+        RECOMENDADOS_HOY[numero] = "🌇 Análisis Tarde"
 
     mensaje = (
         "🎯 *AGENCIA Sofía* 🎯\n"
-        "🌇 *REGALOS Y ANÁLISIS DE LA TARDE* 🌇\n\n"
-        "¡A pocas horas de terminar la jornada! Filtrando mediante análisis en vivo los animales con mayor probabilidad (descartando los ya salidos) para asegurar el cierre:\n\n"
-        f"🌟 *1er Regalo Tarde:* `{analisis[0]}`\n"
-        f"🌟 *2do Regalo Tarde:* `{analisis[1]}`\n"
-        f"🌟 *3er Regalo Tarde:* `{analisis[2]}`\n\n"
+        "🌇 *ANÁLISIS Y CIERRE DE LA TARDE* 🌇\n\n"
+        "¡A pocas horas de terminar la jornada! Evaluando el comportamiento de los últimos sorteos y filtrando por análisis los animales con mayor probabilidad para asegurar el cierre:\n\n"
+        f"⚡️ *Imparables de la Tarde / Cierre:* `{analisis[0]}` y `{analisis[1]}`\n\n"
         "📲 *WHATSAPP:* 04163199157\n"
         f"{ENLACE_CANAL}"
     )
@@ -795,12 +842,12 @@ def cmd_resumen(message):
 
 def loop_bot():
     schedule.every().day.at("06:31").do(enviar_piramide_diaria)
-    schedule.every().day.at("06:45").do(enviar_regalos_diarios) # Regalos de la mañana (aleatorios)
+    schedule.every().day.at("06:45").do(enviar_regalos_diarios)
     schedule.every().day.at("07:00").do(enviar_saludo_matutino)
      
     schedule.every().day.at("08:15").do(enviar_estudio_8am)
     schedule.every().day.at("12:15").do(enviar_estudio_mediodia)
-    schedule.every().day.at("16:15").do(enviar_estudio_tarde) # Regalos/Análisis de la tarde
+    schedule.every().day.at("16:15").do(enviar_estudio_tarde)
     
     schedule.every().day.at("15:30").do(enviar_tasa_dolar)
     schedule.every().day.at("20:00").do(enviar_mensaje_cierre)
@@ -817,6 +864,14 @@ def loop_bot():
     schedule.every().day.at("09:40").do(enviar_combinacion_diaria)
     schedule.every().day.at("13:30").do(enviar_combinacion_diaria)
     schedule.every().day.at("17:30").do(enviar_combinacion_diaria)
+
+    # ==========================================
+    # PROGRAMACIÓN DE CASHEA (4 PUBLICIDADES EXACTAS)
+    # ==========================================
+    schedule.every().day.at("09:00").do(enviar_publicidad_cashea_9am)
+    schedule.every().day.at("12:00").do(enviar_publicidad_cashea_12pm)
+    schedule.every().day.at("15:00").do(enviar_publicidad_cashea_3pm)
+    schedule.every().day.at("16:30").do(enviar_publicidad_cashea_430pm)
 
     schedule.every().day.at("00:01").do(limpiar_recomendaciones_diarias)
     
