@@ -119,6 +119,10 @@ def home():
         "👉 <a href='/test/combinacion'>Probar Combinación Diaria (Análisis)</a>"
     )
 
+@app.route('/ping')
+def ping():
+    return "OK", 200
+
 @app.route('/test/madrugada')
 def test_madrugada():
     enviar_saludo_madrugada()
