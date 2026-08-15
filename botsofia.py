@@ -546,6 +546,7 @@ def guardar_registros(enviados_set):
 
 def verificar_y_enviar_resultados_individuales():
     enviados_hoy = cargar_registros()
+    es_primera_ejecucion = len(enviados_hoy) == 0
      
     try:
         headers = {'User-Agent': 'Mozilla/5.0'}
@@ -624,13 +625,17 @@ def verificar_y_enviar_resultados_individuales():
                         f"🕒 {hora}\n\n"
                         "🍀 *¡Felicidades a todos los que confiaron en Agencia Sofía!*"
                     )
-
                     enviar_telegram(mensaje)
-
                     ACIERTOS_HOY.add(numero)
 
                 id_resultado = f"{nombre_loteria_ind}_{hora}_{resultado}"
 
+                # Si es la primera ejecución, registramos los resultados actuales SIN enviarlos para evitar spam
+                if es_primera_ejecucion:
+                    nuevos_para_guardar.add(id_resultado)
+                    continue
+
+                # A partir de la segunda ejecución, si aparece uno nuevo, sí se envía al canal
                 if id_resultado not in enviados_hoy:
                     hora_actual_str = datetime.now().strftime("%I:%M %p")
                     mensaje = HEADER_SOFIA.format(
@@ -644,7 +649,9 @@ def verificar_y_enviar_resultados_individuales():
                     hubo_cambios = True
                     time.sleep(1.5)
 
-        if hubo_cambios:
+        if es_primera_ejecucion:
+            guardar_registros(nuevos_para_guardar)
+        elif hubo_cambios:
             guardar_registros(nuevos_para_guardar)
 
     except Exception as e:
