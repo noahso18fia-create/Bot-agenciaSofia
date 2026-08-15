@@ -91,9 +91,9 @@ TRADUCCION_LOTERIAS = {
 }
 
 HEADER_Sofia = (
-    "🎯 AGENCIA SOFIA 🎯\n"
+    "🎯 *AGENCIA SOFIA* 🎯\n"
     "━━━━━━━━━━━━━━━━━━\n"
-    "🎲 🎰 {nombre_loteria} 🎲\n"
+    "🎲{nombre_loteria}🎲\n"
     "🕐 Hora: {hora}\n"
     "🐾 Resultado: *{resultado}*\n"
     "━━━━━━━━━━━━━━━━━━\n"
@@ -109,7 +109,7 @@ def home():
         "<b>Enlaces de prueba rápida (Test):</b><br>"
         "👉 <a href='/test/madrugada'>Probar Saludo de Madrugada</a><br>"
         "👉 <a href='/test/piramide'>Probar Pirámide Numérica (Imagen)</a><br>"
-        "👉 <a href='/test/regalos'>Probar Regalos del Día (Análisis)</a><br>"
+        "👉 <a href='/test/regalos'>Probar Regalos del Día (Aleatorios)</a><br>"
         "👉 <a href='/test/saludo'>Probar Saludo Matutino</a><br>"
         "👉 <a href='/test/estudio_manana'>Probar Análisis de las 8 AM</a><br>"
         "👉 <a href='/test/estudio_mediodia'>Probar Análisis del Mediodía</a><br>"
@@ -386,14 +386,17 @@ def seleccionar_analisis_dinamico(cantidad):
     rnd = random.Random(seed_val)
     return rnd.sample(disponibles, cantidad)
 
+# --- MODIFICADO: Regalos de la mañana (3 totalmente aleatorios) ---
 def enviar_regalos_diarios():
     ahora = datetime.now()
     fecha_str = ahora.strftime("%d/%m/%Y")
-    regalos_seleccionados = seleccionar_analisis_dinamico(3)
+    
+    # Selección 100% aleatoria de 3 animalitos para la mañana
+    regalos_seleccionados = random.sample(ANIMALES_POOL, 3)
      
     for animal in regalos_seleccionados:
         numero = animal.split(" - ")[0].zfill(2)
-        RECOMENDADOS_HOY[numero] = "🎁 Regalo del Día (Análisis)"
+        RECOMENDADOS_HOY[numero] = "🎁 Regalo del Día (Aleatorio)"
 
     mensaje_regalos = (
         "🎯 *AGENCIA SOFIA* 🎯\n"
@@ -401,7 +404,7 @@ def enviar_regalos_diarios():
         "🎁 *LOS REGALOS DEL DÍA* 🎁\n"
         f"📅 Fecha: {fecha_str}\n"
         "━━━━━━━━━━━━━━━━━━\n\n"
-        "🔥 *¡Estudio del tablero en vivo, los fijos recomendados para reventar la banca hoy:* 🔥\n\n"
+        "🔥 *¡Los fijos recomendados de la mañana para reventar la banca hoy:* 🔥\n\n"
         f"🌟 *1er Regalo:* `{regalos_seleccionados[0]}`\n"
         f"🌟 *2do Regalo:* `{regalos_seleccionados[1]}`\n"
         f"🌟 *3er Regalo:* `{regalos_seleccionados[2]}`\n\n"
@@ -480,17 +483,20 @@ def enviar_estudio_mediodia():
     )
     enviar_telegram(mensaje, disable_web_preview=True)
 
+# --- MODIFICADO: Estudio/Regalos de la tarde por análisis dinámico ---
 def enviar_estudio_tarde():
-    analisis = seleccionar_analisis_dinamico(2)
+    analisis = seleccionar_analisis_dinamico(3) # Cambiado a 3 para mantener la línea de regalos de tarde si lo deseas
     for animal in analisis:
         numero = animal.split(" - ")[0].zfill(2)
-        RECOMENDADOS_HOY[numero] = "🌇 Análisis Tarde"
+        RECOMENDADOS_HOY[numero] = "🌇 Regalos por Análisis de Tarde"
 
     mensaje = (
         "🎯 *AGENCIA Sofía* 🎯\n"
-        "🌇 *ANÁLISIS Y CIERRE DE LA TARDE* 🌇\n\n"
-        "¡A pocas horas de terminar la jornada! Evaluando el comportamiento de los últimos sorteos y filtrando por análisis los animales con mayor probabilidad para asegurar el cierre:\n\n"
-        f"⚡️ *Imparables de la Tarde / Cierre:* `{analisis[0]}` y `{analisis[1]}`\n\n"
+        "🌇 *REGALOS Y ANÁLISIS DE LA TARDE* 🌇\n\n"
+        "¡A pocas horas de terminar la jornada! Filtrando mediante análisis en vivo los animales con mayor probabilidad (descartando los ya salidos) para asegurar el cierre:\n\n"
+        f"🌟 *1er Regalo Tarde:* `{analisis[0]}`\n"
+        f"🌟 *2do Regalo Tarde:* `{analisis[1]}`\n"
+        f"🌟 *3er Regalo Tarde:* `{analisis[2]}`\n\n"
         "📲 *WHATSAPP:* 04163199157\n"
         f"{ENLACE_CANAL}"
     )
@@ -789,12 +795,12 @@ def cmd_resumen(message):
 
 def loop_bot():
     schedule.every().day.at("06:31").do(enviar_piramide_diaria)
-    schedule.every().day.at("06:45").do(enviar_regalos_diarios)
+    schedule.every().day.at("06:45").do(enviar_regalos_diarios) # Regalos de la mañana (aleatorios)
     schedule.every().day.at("07:00").do(enviar_saludo_matutino)
      
     schedule.every().day.at("08:15").do(enviar_estudio_8am)
     schedule.every().day.at("12:15").do(enviar_estudio_mediodia)
-    schedule.every().day.at("16:15").do(enviar_estudio_tarde)
+    schedule.every().day.at("16:15").do(enviar_estudio_tarde) # Regalos/Análisis de la tarde
     
     schedule.every().day.at("15:30").do(enviar_tasa_dolar)
     schedule.every().day.at("20:00").do(enviar_mensaje_cierre)
