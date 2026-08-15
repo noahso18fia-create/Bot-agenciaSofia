@@ -479,10 +479,10 @@ def enviar_estudio_tarde():
 
 def enviar_saludo_matutino():
     enviar_telegram(
-        "🎯 AGENCIA SOFÍA 🎯\n\n"
-        "☀️ ¡Buenos días! Arrancamos la jornada con la mejor actitud y la mejor energía para ganar.\n\n"
-        "📲 WHATSAPP: 04163199157\n"
-        "¡Mucho éxito en tus jugadas de hoy! 🍀🔥",
+        "☕ ¡Buenos días a todos! ☀️\n\n"
+        "Que hoy sea un día lleno de salud, prosperidad y muchos aciertos. 🙏✨\n\n"
+        "Recuerden que la constancia trae la suerte. Revisa tus datos, elige tus números y haz tu jugada. 🎰\n\n"
+        "📩 Taquilla abierta y atendiéndolos con el mejor servicio. ¡Estamos a un mensaje de distancia! 🚀💵",
         disable_web_preview=True
     )
 
@@ -507,10 +507,10 @@ def enviar_tasa_dolar():
 
 def enviar_mensaje_cierre():
     enviar_telegram(
-        "AGENCIA SOFÍA\n"
-        "🌙 ¡FINAL DE JORNADA! 🌙\n"
-        "*¡Listo por hoy! 🚀 Que descansen y sueñen en grande. Mañana nos vemos tempranito con más suerte y nuevos retos. ¡Buenas noches! 🌟💤*\n"
-        "WHATSAPP: 04163199157",
+        "🌙 ¡BUENAS NOCHES A TODOS! ✨🎰\n\n"
+        "Cerramos taquilla por hoy. Gracias por acompañarnos una jornada más.\n\n"
+        "💡 Vayan pensando sus datos y números de la suerte para mañana, que venimos con todo a repartir premios. 💵🔥\n\n"
+        "💤 ¡Que descansen y tengan dulces sueños! 👋",
         disable_web_preview=True
     )
 
@@ -518,7 +518,7 @@ def enviar_aviso_cierre_sorteo():
     enviar_telegram(
         "🛑 *¡ATENCIÓN!* 🛑\n\n"
         "El tiempo de jugadas ha terminado por este sorteo en la **AGENCIA SOFÍA**.\n\n"
-        "🤞 ¡Cruzamos los dedos por ti, mucha suerte en tus apuestas! 🎲🔥\n"
+        "🤞 ¡Mucha suerte en tus apuestas! 🎲🔥\n"
         "WHATSAPP: 04163199157",
         disable_web_preview=True
     )
