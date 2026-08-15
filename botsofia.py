@@ -1576,10 +1576,6 @@ def loop_bot():
         enviar_saludo_matutino
     )
 
-    schedule.every().day.at(
-        "08:15"
-    ).do(
-        enviar_estudio_8am
     )
 
     schedule.every().day.at(
@@ -1588,22 +1584,12 @@ def loop_bot():
         enviar_combinacion_diaria
     )
 
-    schedule.every().day.at(
-        "12:15"
-    ).do(
-        enviar_estudio_mediodia
     )
 
     schedule.every().day.at(
         "13:30"
     ).do(
         enviar_combinacion_diaria
-    )
-
-    schedule.every().day.at(
-        "16:15"
-    ).do(
-        enviar_estudio_tarde
     )
 
     schedule.every().day.at(
