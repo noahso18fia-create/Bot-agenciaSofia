@@ -1086,6 +1086,10 @@ def guardar_registros(enviados_set):
 # VERIFICAR Y ENVIAR RESULTADOS
 # ==========================================
 
+# ==========================================
+# VERIFICAR Y ENVIAR RESULTADOS
+# ==========================================
+
 def verificar_y_enviar_resultados_individuales():
 
     enviados_hoy = cargar_registros()
@@ -1093,6 +1097,8 @@ def verificar_y_enviar_resultados_individuales():
     es_primera_ejecucion = (
         len(enviados_hoy) == 0
     )
+
+    print("🔎 Revisando resultados de WinBig...")
 
     try:
 
@@ -1104,6 +1110,11 @@ def verificar_y_enviar_resultados_individuales():
             URL_LOTERIA,
             headers=headers,
             timeout=15
+        )
+
+        print(
+            f"🌐 WinBig respondió: "
+            f"{respuesta.status_code}"
         )
 
         if respuesta.status_code != 200:
@@ -1132,11 +1143,19 @@ def verificar_y_enviar_resultados_individuales():
             )
         )
 
+        print(
+            f"📋 Tarjetas encontradas: "
+            f"{len(tarjetas)}"
+        )
+
+        hubo_cambios = False
+
         nuevos_para_guardar = set(
             enviados_hoy
         )
 
-        hubo_cambios = False
+        resultados_detectados = 0
+        resultados_nuevos = 0
 
         for tarjeta in tarjetas:
 
@@ -1185,6 +1204,7 @@ def verificar_y_enviar_resultados_individuales():
                     ]:
 
                         nombre_loteria = t_text
+
                         break
 
             if not nombre_loteria:
@@ -1219,6 +1239,7 @@ def verificar_y_enviar_resultados_individuales():
                         ]:
 
                             nombre_loteria = linea
+
                             break
 
             if (
@@ -1227,19 +1248,27 @@ def verificar_y_enviar_resultados_individuales():
             ):
                 continue
 
-            nombre_loteria_limpio = limpiar_texto(
-                nombre_loteria
+            nombre_loteria_limpio = (
+                limpiar_texto(
+                    nombre_loteria
+                )
             )
 
             nombre_loteria_ind = (
                 nombre_loteria_limpio
             )
 
-            for sigla, nombre_largo in TRADUCCION_LOTERIAS.items():
+            # ==================================
+            # TRADUCIR LOTERÍAS
+            # ==================================
+
+            for sigla, nombre_largo in (
+                TRADUCCION_LOTERIAS.items()
+            ):
 
                 if (
-                    sigla in
-                    nombre_loteria_limpio.upper()
+                    sigla
+                    in nombre_loteria_limpio.upper()
                     or
                     nombre_loteria_limpio.upper()
                     == sigla
@@ -1258,7 +1287,12 @@ def verificar_y_enviar_resultados_individuales():
                 "RESULTADOS"
                 in nombre_loteria_limpio.upper()
             ):
+
                 continue
+
+            # ==================================
+            # BUSCAR SORTEOS
+            # ==================================
 
             slots_sorteo = tarjeta.find_all(
                 [
@@ -1274,7 +1308,10 @@ def verificar_y_enviar_resultados_individuales():
             )
 
             if not slots_sorteo:
-                slots_sorteo = [tarjeta]
+
+                slots_sorteo = [
+                    tarjeta
+                ]
 
             for slot in slots_sorteo:
 
@@ -1286,6 +1323,10 @@ def verificar_y_enviar_resultados_individuales():
                 if "PENDIENTE" in texto_slot:
                     continue
 
+                # ==================================
+                # HORA
+                # ==================================
+
                 match_h = re.search(
                     r"\b(\d{1,2}:\d{2}\s*(?:AM|PM))\b",
                     texto_slot
@@ -1294,7 +1335,14 @@ def verificar_y_enviar_resultados_individuales():
                 if not match_h:
                     continue
 
-                hora = match_h.group(1).upper()
+                hora = (
+                    match_h.group(1)
+                    .upper()
+                )
+
+                # ==================================
+                # RESULTADO
+                # ==================================
 
                 match_res = re.search(
                     r"(\d{1,2}\s-\s"
@@ -1311,11 +1359,13 @@ def verificar_y_enviar_resultados_individuales():
                     match_res.group(1)
                 ).upper()
 
-                numero = (
-                    resultado
-                    .split("-")[0]
-                    .strip()
-                    .zfill(2)
+                resultados_detectados += 1
+
+                print(
+                    f"🔍 Detectado: "
+                    f"{nombre_loteria_ind} | "
+                    f"{hora} | "
+                    f"{resultado}"
                 )
 
                 # ==================================
@@ -1329,13 +1379,15 @@ def verificar_y_enviar_resultados_individuales():
                     ) + 1
                 )
 
+                numero = (
+                    resultado
+                    .split("-")[0]
+                    .strip()
+                    .zfill(2)
+                )
+
                 # ==================================
-                # ACERTAR SOLO SI:
-                #
-                # 1. El animal fue recomendado
-                # 2. Aún no se celebró
-                # 3. El resultado ocurrió DESPUÉS
-                #    de la recomendación
+                # COMPROBAR ACIERTO
                 # ==================================
 
                 if (
@@ -1343,84 +1395,132 @@ def verificar_y_enviar_resultados_individuales():
                     and numero not in ACIERTOS_HOY
                 ):
 
-                    hora_recomendacion = (
-                        HORAS_RECOMENDACIONES.get(
-                            numero
+                    mensaje_acierto = (
+                        "🎉🎉 *¡ACERTAMOS!* 🎉🎉\n\n"
+                        f"✅ {RECOMENDADOS_HOY[numero]}\n\n"
+                        f"🎯 *{resultado}*\n"
+                        f"🎲 {nombre_loteria_ind}\n"
+                        f"🕒 {hora}\n\n"
+                        "🍀 *¡Felicidades a todos "
+                        "los que confiaron en "
+                        "Agencia Sofía!*"
+                    )
+
+                    enviar_telegram(
+                        mensaje_acierto,
+                        True
+                    )
+
+                    ACIERTOS_HOY.add(
+                        numero
+                    )
+
+                    print(
+                        f"🎉 ACIERTO: "
+                        f"{numero} | "
+                        f"{nombre_loteria_ind} | "
+                        f"{hora}"
+                    )
+
+                # ==================================
+                # ID ÚNICO
+                # ==================================
+
+                id_resultado = (
+                    f"{nombre_loteria_ind}_"
+                    f"{hora}_"
+                    f"{resultado}"
+                )
+
+                # ==================================
+                # PRIMERA EJECUCIÓN
+                # ==================================
+
+                if es_primera_ejecucion:
+
+                    nuevos_para_guardar.add(
+                        id_resultado
+                    )
+
+                    continue
+
+                # ==================================
+                # RESULTADO NUEVO
+                # ==================================
+
+                if id_resultado not in enviados_hoy:
+
+                    hora_actual_str = (
+                        datetime.now().strftime(
+                            "%I:%M %p"
                         )
                     )
 
-                    if hora_recomendacion:
+                    mensaje = (
+                        HEADER_SOFIA.format(
+                            nombre_loteria=(
+                                nombre_loteria_ind
+                            ),
+                            hora=hora,
+                            resultado=resultado
+                        )
+                    )
 
-                        try:
+                    enviar_telegram(
+                        mensaje,
+                        True
+                    )
 
-                            ahora = datetime.now()
+                    nuevos_para_guardar.add(
+                        id_resultado
+                    )
 
-                            hora_resultado_dt = (
-                                datetime.strptime(
-                                    hora,
-                                    "%I:%M %p"
-                                )
-                            )
+                    hubo_cambios = True
 
-                            hora_resultado_dt = (
-                                hora_resultado_dt.replace(
-                                    year=ahora.year,
-                                    month=ahora.month,
-                                    day=ahora.day
-                                )
-                            )
+                    resultados_nuevos += 1
 
-                            # ==================================
-                            # ESTA ES LA PROTECCIÓN IMPORTANTE
-                            # ==================================
+                    print(
+                        f"📤 RESULTADO ENVIADO: "
+                        f"{nombre_loteria_ind} | "
+                        f"{hora} | "
+                        f"{resultado}"
+                    )
 
-                            if (
-                                hora_resultado_dt
-                                > hora_recomendacion
-                            ):
+                    time.sleep(1.5)
 
-                                mensaje_acierto = (
-                                    "🎉🎉 *¡ACERTAMOS!* 🎉🎉\n\n"
-                                    f"✅ {RECOMENDADOS_HOY[numero]}\n\n"
-                                    f"🎯 *{resultado}*\n"
-                                    f"🎲 {nombre_loteria_ind}\n"
-                                    f"🕒 {hora}\n\n"
-                                    "🍀 *¡Felicidades a todos "
-                                    "los que confiaron en "
-                                    "Agencia Sofía!*"
-                                )
+        # ==================================
+        # GUARDAR REGISTROS
+        # ==================================
 
-                                enviar_telegram(
-                                    mensaje_acierto,
-                                    True
-                                )
+        if es_primera_ejecucion:
 
-                                ACIERTOS_HOY.add(
-                                    numero
-                                )
+            guardar_registros(
+                nuevos_para_guardar
+            )
 
-                                print(
-                                    f"🎉 ACierto válido: "
-                                    f"{numero} | "
-                                    f"Recomendado: "
-                                    f"{hora_recomendacion.strftime('%I:%M %p')} | "
-                                    f"Salió: {hora}"
-                                )
+            print(
+                "📚 Primera ejecución del día: "
+                "resultados actuales registrados."
+            )
 
-                            else:
+        elif hubo_cambios:
 
-                                print(
-                                    f"⏭️ NO se celebra "
-                                    f"{numero}: "
-                                    f"resultado anterior "
-                                    f"a la recomendación."
-                                )
+            guardar_registros(
+                nuevos_para_guardar
+            )
 
-                        except Exception as e:
+        print(
+            f"✅ Revisión terminada | "
+            f"Detectados: {resultados_detectados} | "
+            f"Nuevos enviados: {resultados_nuevos}"
+        )
 
-                            print(
-                                "⚠️ Error comprobando "
-                                f"hora del acierto: {e}"
+    except Exception as e:
+
+        print(
+            "❌ Error al verificar "
+            f"resultados individuales: {e}"
+        )
                             )
 
                 # ==================================
