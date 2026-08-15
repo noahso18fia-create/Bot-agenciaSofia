@@ -47,7 +47,6 @@ CONTEO_ANIMALES_HOY = {}
 ULTIMO_INDICE_MENSAJE = -1
 
 MENSAJES_AUTOMATICOS = [
-    
     f"🔥 *Agencia Sofía* 🔥\n¡La banca está encendida! Sella tus animalitos favoritos y asegura tu jugada de una vez.\n📲 WhatsApp: 04163199157\n{ENLACE_CANAL}",
     f"🎯 ¡No te quedes sin cobrar hoy! La pizarra de *Agencia Sofía* te espera con los mejores animalitos.\n📲 WhatsApp: 04163199157",
     f"🍀 ¿Ya sabes con cuál animalito vas a reventar la banca? Escríbenos en *Agencia Sofía* y juega seguro.\n📲 WhatsApp: 04163199157\n{ENLACE_CANAL}",
@@ -92,9 +91,9 @@ TRADUCCION_LOTERIAS = {
 }
 
 HEADER_Sofia = (
-    "🎯*AGENCIA SOFIA*🎯\n"
+    "🎯 AGENCIA SOFIA 🎯\n"
     "━━━━━━━━━━━━━━━━━━\n"
-    "🎲 🎰*{nombre_loteria}*🎲\n"
+    "🎲 🎰 {nombre_loteria} 🎲\n"
     "🕐 Hora: {hora}\n"
     "🐾 Resultado: *{resultado}*\n"
     "━━━━━━━━━━━━━━━━━━\n"
@@ -218,9 +217,12 @@ def enviar_mensaje_automatico():
 
 def enviar_saludo_madrugada():
     enviar_telegram(
-        "🎯 AGENCIA Sofía 🎯\n\n"
-        "*¡Activados desde temprano! 🌟 Que este día nos traiga mucha suerte y grandes jugadas. ¡Muy buenos días! 🔥*\n"
-        "WHATSAPP: 04163199157",
+        "☕ ¡Buenos días a todos! ☀️\n\n"
+        "Que hoy sea un día lleno de salud, prosperidad y muchos aciertos. 🙏✨\n\n"
+        "Recuerden que la constancia trae la suerte. Revisa tus datos, elige tus números y haz tu jugada. 🎰\n\n"
+        "📩 Taquilla abierta y atendiéndolos con el mejor servicio. ¡Estamos a un mensaje de distancia! 🚀💵\n"
+        "📲 WhatsApp: 04163199157\n"
+        f"{ENLACE_CANAL}",
         disable_web_preview=True
     )
 
@@ -394,16 +396,6 @@ def enviar_regalos_diarios():
         RECOMENDADOS_HOY[numero] = "🎁 Regalo del Día (Análisis)"
 
     mensaje_regalos = (
-      def enviar_regalos_diarios():
-    ahora = datetime.now()
-    fecha_str = ahora.strftime("%d/%m/%Y")
-    regalos_seleccionados = seleccionar_analisis_dinamico(3)
-     
-    for animal in regalos_seleccionados:
-        numero = animal.split(" - ")[0].zfill(2)
-        RECOMENDADOS_HOY[numero] = "🎁 Regalo del Día (Análisis)"
-
-    mensaje_regalos = (
         "🎯 *AGENCIA SOFIA* 🎯\n"
         "━━━━━━━━━━━━━━━━━━\n"
         "🎁 *LOS REGALOS DEL DÍA* 🎁\n"
@@ -419,20 +411,8 @@ def enviar_regalos_diarios():
         "🍀 *¡Mucha suerte en tus jugadas!* ✨"
     )
     enviar_telegram(mensaje_regalos, disable_web_preview=True)
+
 def enviar_combinacion_diaria():
-    seleccionados = seleccionar_analisis_dinamico(7)
-
-    fijo1, fijo2, par1, par2, trip1, trip2, trip3 = seleccionados[:7]
-
-    for animal in seleccionados:
-        num = animal.split(" - ")[0].zfill(2)
-        RECOMENDADOS_HOY[num] = "🎯 Combinación Especial por Análisis"
-
-    par_str = f"{par1.split(' - ')[0]} - {par2.split(' - ')[0]}"
-    trip_str = f"{trip1.split(' - ')[0]} - {trip2.split(' - ')[0]} - {trip3.split(' - ')[0]}"
-
-    mensaje = (
-       def enviar_combinacion_diaria():
     seleccionados = seleccionar_analisis_dinamico(7)
 
     fijo1, fijo2, par1, par2, trip1, trip2, trip3 = seleccionados[:7]
@@ -457,6 +437,22 @@ def enviar_combinacion_diaria():
         "📲 WhatsApp: 04163199157\n"
         f"{ENLACE_CANAL}\n\n"
         "🍀 *¡A cobrar se ha dicho!* ✨"
+    )
+    enviar_telegram(mensaje, disable_web_preview=True)
+
+def enviar_estudio_8am():
+    analisis = seleccionar_analisis_dinamico(2)
+    for animal in analisis:
+        numero = animal.split(" - ")[0].zfill(2)
+        RECOMENDADOS_HOY[numero] = "🔍 Análisis 8:15 AM"
+
+    mensaje = (
+        "🎯 *AGENCIA Sofía* 🎯\n"
+        "🔍 *ANÁLISIS TRAS EL SORTEO DE LAS 8:00 AM* 🔍\n\n"
+        "¡Ya salieron los primeros animalitos! Evaluando la apertura de la pizarra y descartando lo ya jugado, la casa trae las proyecciones analíticas para los siguientes sorteos:\n\n"
+        f"🔥 *Regalitos recomendados:* `{analisis[0]}` y `{analisis[1]}`\n\n"
+        "📲 *WHATSAPP:* 04163199157\n"
+        f"{ENLACE_CANAL}"
     )
     enviar_telegram(mensaje, disable_web_preview=True)
 
@@ -502,14 +498,13 @@ def enviar_estudio_tarde():
 
 def enviar_saludo_matutino():
     enviar_telegram(
-        f"☕ ¡Buenos días a todos! ☀️\n\n"
-    "Que hoy sea un día lleno de salud, prosperidad y muchos aciertos. 🙏✨\n\n"
-    "Recuerden que la constancia trae la suerte. Revisa tus datos, elige tus números y haz tu jugada. 🎰\n\n"
-    "📩 Taquilla abierta y atendiéndolos con el mejor servicio. ¡Estamos a un mensaje de distancia! 🚀💵\n"
-    "📲 WhatsApp: 04163199157\n"
-    f"{ENLACE_CANAL}"
+        "🎯 AGENCIA Sofía 🎯\n\n"
+        "☀️ ¡Buenos días! Arrancamos la jornada con la mejor actitud y la mejor energía para ganar.\n\n"
+        "📲 WHATSAPP: 04163199157\n"
+        "¡Mucho éxito en tus jugadas de hoy! 🍀🔥",
+        disable_web_preview=True
     )
-    
+
 def enviar_tasa_dolar():
     try:
         headers = {'User-Agent': 'Mozilla/5.0'}
@@ -531,12 +526,13 @@ def enviar_tasa_dolar():
 
 def enviar_mensaje_cierre():
     enviar_telegram(
-       f"🌙 ¡BUENAS NOCHES A TODOS! ✨🎰\n\n"
-    "Cerramos taquilla por hoy. Gracias por acompañarnos una jornada más.\n\n"
-    "💡 Vayan pensando sus datos y números de la suerte para mañana, que venimos con todo a repartir premios. 💵🔥\n\n"
-    "💤 ¡Que descansen y tengan dulces sueños! 👋\n\n"
-    "📲 WhatsApp: 04163199157\n"
-    f"{ENLACE_CANAL}"
+        "🌙 ¡BUENAS NOCHES A TODOS! ✨🎰\n\n"
+        "Cerramos taquilla por hoy. Gracias por acompañarnos una jornada más.\n\n"
+        "💡 Vayan pensando sus datos y números de la suerte para mañana, que venimos con todo a repartir premios. 💵🔥\n\n"
+        "💤 ¡Que descansen y tengan dulces sueños! 👋\n\n"
+        "📲 WhatsApp: 04163199157\n"
+        f"{ENLACE_CANAL}",
+        disable_web_preview=True
     )
 
 def enviar_aviso_cierre_sorteo():
@@ -657,9 +653,7 @@ def verificar_y_enviar_resultados_individuales():
                     continue
 
                 if id_resultado not in enviados_hoy:
-                    hora_actual_str = datetime.now().strftime("%I:%M %p")
                     mensaje = HEADER_Sofia.format(
-                        hora_str=hora_actual_str,
                         nombre_loteria=nombre_loteria_ind,
                         hora=hora,
                         resultado=resultado
@@ -797,11 +791,12 @@ def loop_bot():
     schedule.every().day.at("06:31").do(enviar_piramide_diaria)
     schedule.every().day.at("06:45").do(enviar_regalos_diarios)
     schedule.every().day.at("07:00").do(enviar_saludo_matutino)
-    
+     
+    schedule.every().day.at("08:15").do(enviar_estudio_8am)
     schedule.every().day.at("12:15").do(enviar_estudio_mediodia)
     schedule.every().day.at("16:15").do(enviar_estudio_tarde)
     
-    schedule.every().day.at("18:30").do(enviar_tasa_dolar)
+    schedule.every().day.at("15:30").do(enviar_tasa_dolar)
     schedule.every().day.at("20:00").do(enviar_mensaje_cierre)
     
     schedule.every().day.at("09:30").do(enviar_mensaje_automatico)
