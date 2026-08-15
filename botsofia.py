@@ -645,28 +645,29 @@ def enviar_piramide_diaria():
 # ==========================================
 # REGALOS
 # ==========================================
+# ==========================================
+# REGALOS DEL DÍA - ALEATORIOS SOFÍA
+# ==========================================
 
 def enviar_regalos_diarios():
 
     ahora = datetime.now()
-
     fecha_str = ahora.strftime("%d/%m/%Y")
 
-    seed_val = (
-        int(ahora.strftime("%Y%m%d"))
-        + 99
-    )
-
-    rnd = random.Random(seed_val)
-
-    regalos = rnd.sample(
+    # Selección completamente aleatoria.
+    # No utiliza la fecha como semilla.
+    regalos = random.sample(
         ANIMALES_POOL,
         3
     )
 
     for animal in regalos:
 
-        numero = animal.split(" - ")[0]
+        numero = (
+            animal
+            .split(" - ")[0]
+            .zfill(2)
+        )
 
         guardar_recomendacion(
             numero,
@@ -690,7 +691,12 @@ def enviar_regalos_diarios():
         True
     )
 
-
+    print(
+        f"🎁 Regalos Sofía enviados: "
+        f"{regalos[0]} | "
+        f"{regalos[1]} | "
+        f"{regalos[2]}"
+    )
 # ==========================================
 # OBTENER ANIMALES SALIDOS
 # ==========================================
