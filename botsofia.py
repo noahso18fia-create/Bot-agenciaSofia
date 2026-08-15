@@ -41,8 +41,7 @@ URL_BCV = 'https://www.bcv.org.ve/'
 
 ARCH_REGISTRO = "resultados_sofia.json"
 
-# Diccionario para almacenar recomendaciones con su hora exacta de emisión (para evitar falsos aciertos)
-RECOMENDADOS_HOY = {} # Estructura: { "numero": {"motivo": "...", "hora_emision": datetime} }
+RECOMENDADOS_HOY = {} 
 ACIERTOS_HOY = set()
 CONTEO_ANIMALES_HOY = {}
 ULTIMO_INDICE_MENSAJE = -1
@@ -95,16 +94,6 @@ ANIMALES_POOL = [
     "35 - Jirafa", "36 - Culebra"
 ]
 
-TRADUCCION_LOTERIAS = {
-    "L.A": "LOTTO ACTIVO",
-    "GRJ": "GRANJITA",
-    "S.P": "SELVA PLUS",
-    "L.RE": "LOTTO REAL",
-    "GHO": "GUACHARO",
-    "L.CH": "LOTTO CHAIMA",
-    "MJ.M": "MONJE MILLONARIO"
-}
-
 HEADER_Sofia = (
     "🎯 *AGENCIA SOFIA* 🎯\n"
     "━━━━━━━━━━━━━━━━━━\n"
@@ -125,6 +114,10 @@ def home():
 def ping():
     return "OK", 200
 
+def limpiar_texto(texto):
+    """Limpia espacios dobles y caracteres extraños de los textos extraídos."""
+    return re.sub(r'\s+', ' ', texto).strip()
+
 def enviar_telegram(mensaje, disable_web_preview=True):
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
     payload = {
@@ -137,11 +130,6 @@ def enviar_telegram(mensaje, disable_web_preview=True):
         requests.post(url, json=payload, timeout=10)
     except Exception as e:
         print(f"⚠️ Error al enviar: {e}")
-
-def limpiar_recomendaciones_diarias():
-    RECOMENDADOS_HOY.clear()
-    ACIERTOS_HOY.clear()
-    CONTEO_ANIMALES_HOY.clear()
 
 def enviar_mensaje_automatico():
     global ULTIMO_INDICE_MENSAJE
@@ -156,12 +144,6 @@ def enviar_publicidad_cashea_12pm(): enviar_telegram(PUBLICIDAD_CASHEA_12PM)
 def enviar_publicidad_cashea_3pm(): enviar_telegram(PUBLICIDAD_CASHEA_3PM)
 def enviar_publicidad_cashea_430pm(): enviar_telegram(PUBLICIDAD_CASHEA_430PM)
 
-def enviar_saludo_madrugada():
-    enviar_telegram(
-        "☕ ¡Buenos días a todos! ☀️\n\nQue hoy sea un día lleno de salud y muchos aciertos. 🙏✨\n📲 WhatsApp: 04163199157\n" + ENLACE_CANAL,
-        disable_web_preview=True
-    )
-
 def generar_imagen_piramide():
     ahora = datetime.now()
     fecha_str = ahora.strftime("%d/%m/%Y")
@@ -172,11 +154,8 @@ def generar_imagen_piramide():
         siguiente = [(actual[i] + actual[i+1]) % 10 for i in range(len(actual) - 1)]
         filas.append(siguiente)
 
-    # Semilla única para Sofía diferente a cualquier otra agencia (+9999)
     seed_val = int(ahora.strftime("%Y%m%d")) + 9999
     rnd = random.Random(seed_val)
-    
-    # Seleccionar números totalmente independientes basados en la semilla de Sofía
     pool_nums = [f"{i:02d}" for i in range(37)] + ["00"]
     candidates = rnd.sample(pool_nums, 6)
     
@@ -245,7 +224,6 @@ def enviar_piramide_diaria():
         print(f"Error imagen pirámide: {e}")
 
 def seleccionar_analisis_dinamico(cantidad):
-    # Generador con semilla única y dinámica basada en microsegundos para evitar patrones cruzados
     seed_val = int(datetime.now().strftime("%Y%m%d%H%M%S%f")) + 5555
     rnd = random.Random(seed_val)
     return rnd.sample(ANIMALES_POOL, cantidad)
@@ -328,7 +306,6 @@ def guardar_registros(enviados_set):
         print(f"Error al guardar registros: {e}")
 
 def parsear_hora_sorteo(hora_str):
-    """Convierte un string de hora tipo '4:00 PM' en un objeto datetime de hoy con esa hora exacta."""
     try:
         limpia = hora_str.strip().upper()
         dt_time = datetime.strptime(limpia, "%I:%M %p")
@@ -339,7 +316,6 @@ def parsear_hora_sorteo(hora_str):
 
 def verificar_y_enviar_resultados_individuales():
     enviados_hoy = cargar_registros()
-    es_primera = len(enviados_hoy) == 0
     try:
         respuesta = requests.get(URL_LOTERIA, headers={'User-Agent': 'Mozilla/5.0'}, timeout=15)
         if respuesta.status_code != 200: return
@@ -374,13 +350,11 @@ def verificar_y_enviar_resultados_individuales():
 
                 id_res = f"{nombre_loteria}_{hora}_{resultado}"
 
-                # VALIDACIÓN CRÍTICA: ¿El sorteo ocurrió DESPUÉS de que se envió el dato/análisis?
                 if numero in RECOMENDADOS_HOY and numero not in ACIERTOS_HOY:
                     info_rec = RECOMENDADOS_HOY[numero]
                     hora_emision = info_rec["hora_emision"]
                     dt_sorteo = parsear_hora_sorteo(hora)
 
-                    # Solo celebra si el sorteo es estrictamente posterior a la emisión del mensaje
                     if dt_sorteo and dt_sorteo > hora_emision:
                         mensaje_acierto = (
                             "🎉🎉 *¡ACERTAMOS!* 🎉🎉\n\n"
@@ -393,16 +367,13 @@ def verificar_y_enviar_resultados_individuales():
                         enviar_telegram(mensaje_acierto)
                         ACIERTOS_HOY.add(numero)
 
-                if es_primera:
-                    nuevos_para_guardar.add(id_res)
-                    continue
                 if id_res not in enviados_hoy:
                     enviar_telegram(HEADER_Sofia.format(nombre_loteria=nombre_loteria, hora=hora, resultado=resultado))
                     nuevos_para_guardar.add(id_res)
                     hubo_cambios = True
                     time.sleep(1.5)
 
-        if es_primera or hubo_cambios:
+        if hubo_cambios:
             guardar_registros(nuevos_para_guardar)
     except Exception as e:
         print(f"Error en resultados: {e}")
