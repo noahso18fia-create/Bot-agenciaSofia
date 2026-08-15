@@ -47,26 +47,27 @@ CONTEO_ANIMALES_HOY = {}
 ULTIMO_INDICE_MENSAJE = -1
 
 MENSAJES_AUTOMATICOS = [
-    f"🎯 *Agencia Sofía* 🎯\n¡La suerte está de tu lado hoy! No te quedes sin jugar tu animalito favorito.\n📲 WhatsApp: 04163199157\n{ENLACE_CANAL}",
-    f"🔥 ¡Activos con la buena energía en *Agencia Sofía*! Elige tu animalito y ven a ganar con nosotros.\n📲 WhatsApp: 04163199157",
-    f"🍀 ¿Ya consultaste tu palpito para el próximo sorteo? En *Agencia Sofía* te pagamos al instante.\n📲 WhatsApp: 04163199157\n{ENLACE_CANAL}",
-    f"⚡️ ¡No dejes para última hora tus jugadas! La banca de *Agencia Sofía* está lista para recibir tu tiquet ganador.\n📲 04163199157",
-    f"🌟 La constancia trae el éxito. ¡Sigue jugando tus animalitos preferidos en *Agencia Sofía*!\n📲 WhatsApp: 04163199157\n{ENLACE_CANAL}",
-    f"🎲 ¿Cuál es tu animalito fetiche hoy? Juega seguro y cobra rápido con *Agencia Sofía*.\n📲 WhatsApp: 04163199157",
-    f"🚀 ¡Arranca tu buena racha con *Agencia Sofía*! Trabajamos para ti con la mejor atención.\n📲 WhatsApp: 04163199157\n{ENLACE_CANAL}",
-    f"💡 Un buen día comienza jugando con confianza. ¡Haz tus jugadas en *Agencia Sofía*!\n📲 WhatsApp: 04163199157",
-    f"🎯 ¡Atención apostadores! La pizarra de *Agencia Sofía* está habilitada para que revientes la banca hoy.\n📲 04163199157\n{ENLACE_CANAL}",
-    f"✨ La suerte sonríe a los audaces. ¡Haz tu jugada ahora mismo en *Agencia Sofía*!\n📲 WhatsApp: 04163199157",
-    f"🏆 ¡Conviértete en el próximo ganador del día con *Agencia Sofía*!\n📲 WhatsApp: 04163199157\n{ENLACE_CANAL}",
-    f"🔥 ¡El momento de ganar es ahora! Consulta tus animalitos y juega con *Agencia Sofía*.\n📲 WhatsApp: 04163199157",
-    f"🍀 Confía en tu instinto y sella tus animalitos favoritos en *Agencia Sofía*.\n📲 WhatsApp: 04163199157\n{ENLACE_CANAL}",
-    f"⚡️ ¡Rapidez, seguridad y confianza! Todo eso y más en *Agencia Sofía*.\n📲 WhatsApp: 04163199157",
-    f"🎯 ¡No te quedes fuera de la jugada! Ven y participa con *Agencia Sofía*.\n📲 WhatsApp: 04163199157\n{ENLACE_CANAL}",
-    f"🌟 ¿Listo para acertar el próximo animalito? *Agencia Sofía* te acompaña en cada sorteo.\n📲 04163199157",
-    f"🚀 ¡Sube la apuesta y gana en grande con los animalitos de *Agencia Sofía*!\n📲 WhatsApp: 04163199157\n{ENLACE_CANAL}",
-    f"💡 Recuerda que en *Agencia Sofía* trabajamos para ti todos los días.\n📲 WhatsApp: 04163199157",
-    f"🎲 ¡La emoción de los animalitos se vive mejor jugando con *Agencia Sofía*!\n📲 WhatsApp: 04163199157\n{ENLACE_CANAL}",
-    f"✨ ¡Activa tu buena suerte hoy con *Agencia Sofía*! Escríbenos al WhatsApp.\n📲 04163199157"
+    MENSAJES_AUTOMATICOS = [
+    f"🔥 *Agencia Sofía* 🔥\n¡La banca está encendida! Sella tus animalitos favoritos y asegura tu jugada de una vez.\n📲 WhatsApp: 04163199157\n{ENLACE_CANAL}",
+    f"🎯 ¡No te quedes sin cobrar hoy! La pizarra de *Agencia Sofía* te espera con los mejores animalitos.\n📲 WhatsApp: 04163199157",
+    f"🍀 ¿Ya sabes con cuál animalito vas a reventar la banca? Escríbenos en *Agencia Sofía* y juega seguro.\n📲 WhatsApp: 04163199157\n{ENLACE_CANAL}",
+    f"⚡️ ¡Pago rápido y atención al instante! Así trabajamos para ti en *Agencia Sofía*.\n📲 WhatsApp: 04163199157",
+    f"🌟 La suerte favorece a los valientes. ¡Haz tu jugada ahora mismo con *Agencia Sofía*!\n📲 WhatsApp: 04163199157\n{ENLACE_CANAL}",
+    f"🎲 ¿Cuál es tu corazonada para el próximo sorteo? Llévala a ganar con *Agencia Sofía*.\n📲 WhatsApp: 04163199157",
+    f"🚀 ¡Arranca tu jugada ganadora! En *Agencia Sofía* te pagamos derecho y sin complicaciones.\n📲 WhatsApp: 04163199157\n{ENLACE_CANAL}",
+    f"💡 Confía en tu instinto, elige tu animalito preferido y ven a ganar con *Agencia Sofía*.\n📲 WhatsApp: 04163199157",
+    f"🏆 ¡El próximo tiquet ganador del día puede ser el tuyo! Juega con confianza en *Agencia Sofía*.\n📲 WhatsApp: 04163199157\n{ENLACE_CANAL}",
+    f"✨ ¡Activa tu buena racha hoy! La taquilla de *Agencia Sofía* está abierta y lista para recibir tus jugadas.\n📲 WhatsApp: 04163199157",
+    f"🔥 ¡Atención apostadores! Los animalitos más calientes del día los consigues en *Agencia Sofía*.\n📲 WhatsApp: 04163199157\n{ENLACE_CANAL}",
+    f"🍀 Seguridad, rapidez y la mejor atención. ¡Todo lo que buscas está en *Agencia Sofía*!\n📲 WhatsApp: 04163199157",
+    f"🎯 ¡No dejes que te lo cuenten! Ven, juega y cobra al instante con *Agencia Sofía*.\n📲 WhatsApp: 04163199157\n{ENLACE_CANAL}",
+    f"⚡️ ¡El tiempo corre y la suerte también! Escríbenos al WhatsApp y sella tus animalitos con *Agencia Sofía*.\n📲 04163199157",
+    f"🌟 ¡Sube la apuesta y prepárate para ganar! *Agencia Sofía* te acompaña en cada sorteo.\n📲 WhatsApp: 04163199157\n{ENLACE_CANAL}",
+    f"🎲 ¡La emoción de los animalitos se vive al máximo con *Agencia Sofía*! Haz tu jugada ya.\n📲 WhatsApp: 04163199157",
+    f"🚀 ¿Listo para acertar? La banca de *Agencia Sofía* te paga tus aciertos al instante.\n📲 WhatsApp: 04163199157\n{ENLACE_CANAL}",
+    f"💡 Recuerda que en *Agencia Sofía* estamos comprometidos con tu buena suerte todos los días.\n📲 WhatsApp: 04163199157",
+    f"✨ ¡Que nada te detenga hoy! Sella tus animalitos favoritos de la mano de *Agencia Sofía*.\n📲 WhatsApp: 04163199157\n{ENLACE_CANAL}",
+    f"🏆 ¡Juega, acierta y cobra seguro con *Agencia Sofía*! Escríbenos al WhatsApp.\n📲 04163199157"
 ]
 
 ANIMALES_POOL = [
@@ -91,12 +92,13 @@ TRADUCCION_LOTERIAS = {
 }
 
 HEADER_Sofia = (
-    "*AGENCIA Sofía*\n"
-    "*RESULTADOS*\n\n"
-    "🎲 *{nombre_loteria}* 🎲\n"
-    "Hora: {hora}\n"
-    "Animalito: *{resultado}*\n\n"
-    "04163199157"
+    "🎯*AGENCIA SOFIA*🎯\n"
+    "━━━━━━━━━━━━━━━━━━\n"
+    "🎲 🎰*{nombre_loteria}*🎲\n"
+    "🕐 Hora: {hora}\n"
+    "🐾 Resultado: *{resultado}*\n"
+    "━━━━━━━━━━━━━━━━━━\n"
+    "📲 04163199157"
 )
 
 app = Flask('')
@@ -392,18 +394,31 @@ def enviar_regalos_diarios():
         RECOMENDADOS_HOY[numero] = "🎁 Regalo del Día (Análisis)"
 
     mensaje_regalos = (
-        "🎁 *LOS REGALOS DE LA AGENCIA Sofía* 🎁\n"
-        f"📅 Fecha: {fecha_str}\n\n"
-        "¡Estudio del tablero en vivo, los fijos recomendados para reventar la banca hoy:\n\n"
-        f"🌟 *1er Regalo:* {regalos_seleccionados[0]}\n"
-        f"🌟 *2do Regalo:* {regalos_seleccionados[1]}\n"
-        f"🌟 *3er Regalo:* {regalos_seleccionados[2]}\n\n"
-        "📲 WHATSAPP: 04163199157\n"
+      def enviar_regalos_diarios():
+    ahora = datetime.now()
+    fecha_str = ahora.strftime("%d/%m/%Y")
+    regalos_seleccionados = seleccionar_analisis_dinamico(3)
+     
+    for animal in regalos_seleccionados:
+        numero = animal.split(" - ")[0].zfill(2)
+        RECOMENDADOS_HOY[numero] = "🎁 Regalo del Día (Análisis)"
+
+    mensaje_regalos = (
+        "🎯 *AGENCIA SOFIA* 🎯\n"
+        "━━━━━━━━━━━━━━━━━━\n"
+        "🎁 *LOS REGALOS DEL DÍA* 🎁\n"
+        f"📅 Fecha: {fecha_str}\n"
+        "━━━━━━━━━━━━━━━━━━\n\n"
+        "🔥 *¡Estudio del tablero en vivo, los fijos recomendados para reventar la banca hoy:* 🔥\n\n"
+        f"🌟 *1er Regalo:* `{regalos_seleccionados[0]}`\n"
+        f"🌟 *2do Regalo:* `{regalos_seleccionados[1]}`\n"
+        f"🌟 *3er Regalo:* `{regalos_seleccionados[2]}`\n\n"
+        "━━━━━━━━━━━━━━━━━━\n"
+        "📲 WhatsApp: 04163199157\n"
         f"{ENLACE_CANAL}\n\n"
-        "¡Mucha suerte en tus jugadas! 🍀✨"
+        "🍀 *¡Mucha suerte en tus jugadas!* ✨"
     )
     enviar_telegram(mensaje_regalos, disable_web_preview=True)
-
 def enviar_combinacion_diaria():
     seleccionados = seleccionar_analisis_dinamico(7)
 
@@ -417,30 +432,31 @@ def enviar_combinacion_diaria():
     trip_str = f"{trip1.split(' - ')[0]} - {trip2.split(' - ')[0]} - {trip3.split(' - ')[0]}"
 
     mensaje = (
-        "🎯 *COMBINACIÓN GANADORA - AGENCIA Sofía* 🎯\n"
-        "🔥 ¡Datos calculados mediante análisis del tablero:\n\n"
+       def enviar_combinacion_diaria():
+    seleccionados = seleccionar_analisis_dinamico(7)
+
+    fijo1, fijo2, par1, par2, trip1, trip2, trip3 = seleccionados[:7]
+
+    for animal in seleccionados:
+        num = animal.split(" - ")[0].zfill(2)
+        RECOMENDADOS_HOY[num] = "🎯 Combinación Especial por Análisis"
+
+    par_str = f"{par1.split(' - ')[0]} - {par2.split(' - ')[0]}"
+    trip_str = f"{trip1.split(' - ')[0]} - {trip2.split(' - ')[0]} - {trip3.split(' - ')[0]}"
+
+    mensaje = (
+        "🎯 *AGENCIA SOFIA* 🎯\n"
+        "━━━━━━━━━━━━━━━━━━\n"
+        "🔥 *COMBINACIÓN GANADORA* 🔥\n"
+        "━━━━━━━━━━━━━━━━━━\n\n"
+        "📊 *Datos calculados mediante análisis del tablero:*\n\n"
         f"📌 *Fijos del Día:* `{fijo1}` y `{fijo2}`\n"
         f"📌 *El Par:* `{par_str}`\n"
         f"📌 *La Tripleta:* `{trip_str}`\n\n"
-        "📲 *WHATSAPP:* 04163199157\n"
+        "━━━━━━━━━━━━━━━━━━\n"
+        "📲 WhatsApp: 04163199157\n"
         f"{ENLACE_CANAL}\n\n"
-        "¡A cobrar se ha dicho! 🍀✨"
-    )
-    enviar_telegram(mensaje, disable_web_preview=True)
-
-def enviar_estudio_8am():
-    analisis = seleccionar_analisis_dinamico(2)
-    for animal in analisis:
-        numero = animal.split(" - ")[0].zfill(2)
-        RECOMENDADOS_HOY[numero] = "🔍 Análisis 8:15 AM"
-
-    mensaje = (
-        "🎯 *AGENCIA Sofía* 🎯\n"
-        "🔍 *ANÁLISIS TRAS EL SORTEO DE LAS 8:00 AM* 🔍\n\n"
-        "¡Ya salieron los primeros animalitos! Evaluando la apertura de la pizarra y descartando lo ya jugado, la casa trae las proyecciones analíticas para los siguientes sorteos:\n\n"
-        f"🔥 *Regalitos recomendados:* `{analisis[0]}` y `{analisis[1]}`\n\n"
-        "📲 *WHATSAPP:* 04163199157\n"
-        f"{ENLACE_CANAL}"
+        "🍀 *¡A cobrar se ha dicho!* ✨"
     )
     enviar_telegram(mensaje, disable_web_preview=True)
 
@@ -486,13 +502,14 @@ def enviar_estudio_tarde():
 
 def enviar_saludo_matutino():
     enviar_telegram(
-        "🎯 AGENCIA Sofía 🎯\n\n"
-        "☀️ ¡Buenos días! Arrancamos la jornada con la mejor actitud y la mejor energía para ganar.\n\n"
-        "📲 WHATSAPP: 04163199157\n"
-        "¡Mucho éxito en tus jugadas de hoy! 🍀🔥",
-        disable_web_preview=True
+        f"☕ ¡Buenos días a todos! ☀️\n\n"
+    "Que hoy sea un día lleno de salud, prosperidad y muchos aciertos. 🙏✨\n\n"
+    "Recuerden que la constancia trae la suerte. Revisa tus datos, elige tus números y haz tu jugada. 🎰\n\n"
+    "📩 Taquilla abierta y atendiéndolos con el mejor servicio. ¡Estamos a un mensaje de distancia! 🚀💵\n"
+    "📲 WhatsApp: 04163199157\n"
+    f"{ENLACE_CANAL}"
     )
-
+    
 def enviar_tasa_dolar():
     try:
         headers = {'User-Agent': 'Mozilla/5.0'}
@@ -514,10 +531,12 @@ def enviar_tasa_dolar():
 
 def enviar_mensaje_cierre():
     enviar_telegram(
-        "AGENCIA Sofía\n"
-        "🌙 ¡FINAL DE JORNADA! 🌙\n"
-        "*¡Listo por hoy! 🚀 Que descansen y sueñen en grande. Mañana nos vemos tempranito con más suerte y nuevos retos. ¡Buenas noches! 🌟💤*",
-        disable_web_preview=True
+       f"🌙 ¡BUENAS NOCHES A TODOS! ✨🎰\n\n"
+    "Cerramos taquilla por hoy. Gracias por acompañarnos una jornada más.\n\n"
+    "💡 Vayan pensando sus datos y números de la suerte para mañana, que venimos con todo a repartir premios. 💵🔥\n\n"
+    "💤 ¡Que descansen y tengan dulces sueños! 👋\n\n"
+    "📲 WhatsApp: 04163199157\n"
+    f"{ENLACE_CANAL}"
     )
 
 def enviar_aviso_cierre_sorteo():
@@ -778,12 +797,11 @@ def loop_bot():
     schedule.every().day.at("06:31").do(enviar_piramide_diaria)
     schedule.every().day.at("06:45").do(enviar_regalos_diarios)
     schedule.every().day.at("07:00").do(enviar_saludo_matutino)
-     
-    schedule.every().day.at("08:15").do(enviar_estudio_8am)
+    
     schedule.every().day.at("12:15").do(enviar_estudio_mediodia)
     schedule.every().day.at("16:15").do(enviar_estudio_tarde)
     
-    schedule.every().day.at("15:30").do(enviar_tasa_dolar)
+    schedule.every().day.at("18:30").do(enviar_tasa_dolar)
     schedule.every().day.at("20:00").do(enviar_mensaje_cierre)
     
     schedule.every().day.at("09:30").do(enviar_mensaje_automatico)
