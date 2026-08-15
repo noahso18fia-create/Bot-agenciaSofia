@@ -29,9 +29,9 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # ==========================================
 # CONFIGURACIÓN DE CREDENCIALES Y ENLACES (Agencia Sofía)
 # ==========================================
-TOKEN = '8893057303:AAHi1D9GJEentjBJJB_6IdMNtSbQ2jxj7WQ'
+TOKEN = 'TU_TOKEN_DE_TELEGRAM_AQUI'  # Reemplaza con el token del bot de Sofía
 CANAL = '@agenciasofia'                # Reemplaza con el canal de Sofía
-ENLACE_CANAL = 'https://t.me/agenciasofiaoficial' # Reemplaza con el enlace de tu canal
+ENLACE_CANAL = 'https://t.me/tu_enlace_de_invitacion' # Reemplaza con el enlace de tu canal
 
 bot = telebot.TeleBot(TOKEN)
 
@@ -70,13 +70,12 @@ TRADUCCION_LOTERIAS = {
 }
 
 HEADER_SOFIA = (
-    "*🎯 AGENCIA SOFIA 🎯*\n"
-    "━━━━━━━━━━━━━━━━━━\n"
-    "🎲 🎰 {nombre_loteria} 🎲\n"
-    "🕐 Hora: *{hora}*\n"
-    "🐾 Resultado: *{resultado}*\n"
-    "━━━━━━━━━━━━━━━━━━\n"
-    "📲 04163199157\n"
+    "*AGENCIA SOFÍA*\n"
+    "*RESULTADOS*\n\n"
+    "🎲 *{nombre_loteria}* 🎲\n"
+    "Hora: {hora}\n"
+    "Animalito: *{resultado}*\n\n"
+    "04163199157"
 )
 
 app = Flask('')
@@ -479,10 +478,10 @@ def enviar_estudio_tarde():
 
 def enviar_saludo_matutino():
     enviar_telegram(
-        "☕ ¡Buenos días a todos! ☀️\n\n"
-        "Que hoy sea un día lleno de salud, prosperidad y muchos aciertos. 🙏✨\n\n"
-        "Recuerden que la constancia trae la suerte. Revisa tus datos, elige tus números y haz tu jugada. 🎰\n\n"
-        "📩 Taquilla abierta y atendiéndolos con el mejor servicio. ¡Estamos a un mensaje de distancia! 🚀💵",
+        "🎯 AGENCIA SOFÍA 🎯\n\n"
+        "☀️ ¡Buenos días! Arrancamos la jornada con la mejor actitud y la mejor energía para ganar.\n\n"
+        "📲 WHATSAPP: 04163199157\n"
+        "¡Mucho éxito en tus jugadas de hoy! 🍀🔥",
         disable_web_preview=True
     )
 
@@ -507,10 +506,10 @@ def enviar_tasa_dolar():
 
 def enviar_mensaje_cierre():
     enviar_telegram(
-        "🌙 ¡BUENAS NOCHES A TODOS! ✨🎰\n\n"
-        "Cerramos taquilla por hoy. Gracias por acompañarnos una jornada más.\n\n"
-        "💡 Vayan pensando sus datos y números de la suerte para mañana, que venimos con todo a repartir premios. 💵🔥\n\n"
-        "💤 ¡Que descansen y tengan dulces sueños! 👋",
+        "AGENCIA SOFÍA\n"
+        "🌙 ¡FINAL DE JORNADA! 🌙\n"
+        "*¡Listo por hoy! 🚀 Que descansen y sueñen en grande. Mañana nos vemos tempranito con más suerte y nuevos retos. ¡Buenas noches! 🌟💤*\n"
+        "WHATSAPP: 04163199157",
         disable_web_preview=True
     )
 
@@ -518,7 +517,7 @@ def enviar_aviso_cierre_sorteo():
     enviar_telegram(
         "🛑 *¡ATENCIÓN!* 🛑\n\n"
         "El tiempo de jugadas ha terminado por este sorteo en la **AGENCIA SOFÍA**.\n\n"
-        "🤞 ¡Mucha suerte en tus apuestas! 🎲🔥\n"
+        "🤞 ¡Cruzamos los dedos por ti, mucha suerte en tus apuestas! 🎲🔥\n"
         "WHATSAPP: 04163199157",
         disable_web_preview=True
     )
@@ -547,7 +546,6 @@ def guardar_registros(enviados_set):
 
 def verificar_y_enviar_resultados_individuales():
     enviados_hoy = cargar_registros()
-    es_primera_ejecucion = len(enviados_hoy) == 0
      
     try:
         headers = {'User-Agent': 'Mozilla/5.0'}
@@ -583,8 +581,7 @@ def verificar_y_enviar_resultados_individuales():
                 continue
 
             nombre_loteria_limpio = limpiar_texto(nombre_loteria)
-            loteria_key = nombre_loteria_limpio
-
+            
             nombre_loteria_ind = nombre_loteria_limpio
             for sigla, nombre_largo in TRADUCCION_LOTERIAS.items():
                 if sigla in nombre_loteria_limpio.upper() or nombre_loteria_limpio.upper() == sigla:
@@ -634,10 +631,6 @@ def verificar_y_enviar_resultados_individuales():
 
                 id_resultado = f"{nombre_loteria_ind}_{hora}_{resultado}"
 
-                if es_primera_ejecucion:
-                    nuevos_para_guardar.add(id_resultado)
-                    continue
-
                 if id_resultado not in enviados_hoy:
                     hora_actual_str = datetime.now().strftime("%I:%M %p")
                     mensaje = HEADER_SOFIA.format(
@@ -651,9 +644,7 @@ def verificar_y_enviar_resultados_individuales():
                     hubo_cambios = True
                     time.sleep(1.5)
 
-        if es_primera_ejecucion:
-            guardar_registros(nuevos_para_guardar)
-        elif hubo_cambios:
+        if hubo_cambios:
             guardar_registros(nuevos_para_guardar)
 
     except Exception as e:
@@ -796,7 +787,7 @@ def loop_bot():
     schedule.every().day.at("12:15").do(enviar_estudio_mediodia)
     schedule.every().day.at("16:15").do(enviar_estudio_tarde)
     
-    schedule.every().day.at("15:30").do(enviar_tasa_dolar)
+    schedule.every().day.at("18:30").do(enviar_tasa_dolar)
     schedule.every().day.at("20:00").do(enviar_mensaje_cierre)
     
     schedule.every().day.at("09:40").do(enviar_combinacion_diaria)
