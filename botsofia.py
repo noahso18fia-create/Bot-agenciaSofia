@@ -47,7 +47,7 @@ CONTEO_ANIMALES_HOY = {}
 ULTIMO_INDICE_MENSAJE = -1
 
 MENSAJES_AUTOMATICOS = [
-    MENSAJES_AUTOMATICOS = [
+    
     f"🔥 *Agencia Sofía* 🔥\n¡La banca está encendida! Sella tus animalitos favoritos y asegura tu jugada de una vez.\n📲 WhatsApp: 04163199157\n{ENLACE_CANAL}",
     f"🎯 ¡No te quedes sin cobrar hoy! La pizarra de *Agencia Sofía* te espera con los mejores animalitos.\n📲 WhatsApp: 04163199157",
     f"🍀 ¿Ya sabes con cuál animalito vas a reventar la banca? Escríbenos en *Agencia Sofía* y juega seguro.\n📲 WhatsApp: 04163199157\n{ENLACE_CANAL}",
