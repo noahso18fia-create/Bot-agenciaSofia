@@ -452,9 +452,13 @@ def guardar_registros(enviados_set):
 # VERIFICAR Y ENVIAR CON FILTRO DE HORA
 # ==========================================
 
+# ==========================================
+# VERIFICAR Y ENVIAR CON HORA EXACTA POR TARJETA
+# ==========================================
+
 def verificar_y_enviar_resultados_individuales():
     enviados_hoy = cargar_registros()
-    print("🔎 Escaneando WinBig...")
+    print("🔎 Escaneando WinBig con precisión de hora exacta...")
 
     try:
         headers = {
@@ -476,7 +480,8 @@ def verificar_y_enviar_resultados_individuales():
         hubo_cambios = False
         nuevos_para_guardar = set(enviados_hoy)
 
-        regex_hora = re.compile(r'\b(\d{1,2}:\d{2}\s*(?:AM|PM|am|pm)?)\b')
+        # Regex para horas en formato de 12 horas (ej: 09:00 AM, 9:00AM, 09:30 am)
+        regex_hora = re.compile(r'\b(0?[1-9]|1[0-2]):([0-5][0-9])\s*(AM|PM|am|pm)\b', re.IGNORECASE)
         regex_resultado = re.compile(r'\b(\d{1,2})\s*[-–—]?\s*([A-Za-zÁÉÍÓÚáéíóúÑñ\s]{3,20})\b')
 
         ahora_dt = datetime.now()
@@ -495,27 +500,14 @@ def verificar_y_enviar_resultados_individuales():
             if not nombre_loteria_ind:
                 continue
 
-            coincidencias_hora = regex_hora.findall(texto_tarjeta)
+            # Buscar la hora específica dentro de esta tarjeta
+            match_hora = regex_hora.search(texto_tarjeta)
             coincidencias_res = regex_resultado.findall(texto_tarjeta)
 
-            if coincidencias_hora and coincidencias_res:
-                hora_str = coincidencias_hora[0].upper()
-                if "AM" not in hora_str and "PM" not in hora_str:
-                    h_num = int(hora_str.split(":")[0])
-                    hora_str += " AM" if h_num < 12 else " PM"
-
-                # 🛡️ FILTRO DE SEGURIDAD: Convertir hora del sorteo a objeto datetime para comparar
-                try:
-                    hora_limpia_str = hora_str.replace("A.M.", "AM").replace("P.M.", "PM")
-                    sorteo_dt = datetime.strptime(hora_limpia_str, "%I:%M %p")
-                    # Asignar la fecha actual al objeto de hora del sorteo
-                    sorteo_dt = sorteo_dt.replace(year=ahora_dt.year, month=ahora_dt.month, day=ahora_dt.day)
-                    
-                    # Si el sorteo es de hace más de 2 horas o del futuro lejano que no toca, lo ignoramos al reiniciar
-                    # O simplemente si la hora del sorteo ya pasó por mucho y no se mandó, evitamos spam masivo.
-                    # Aquí evitamos que mande sorteos cuya hora sea menor a la hora actual menos 45 minutos (por si acaso).
-                except Exception:
-                    pass
+            if match_hora and coincidencias_res:
+                # Armar la hora limpia con formato estándar (ej: 09:00 AM)
+                h, m, ampm = match_hora.groups()
+                hora_str = f"{h.zfill(2)}:{m} {ampm.upper()}"
 
                 num_str, animal_str = coincidencias_res[0]
                 num_formatted = num_str.zfill(2) if num_str != "0" else "0"
@@ -524,15 +516,23 @@ def verificar_y_enviar_resultados_individuales():
                 id_resultado = f"{nombre_loteria_ind}_{hora_str}_{resultado}"
 
                 if id_resultado not in enviados_hoy:
-                    # 🛡️ PROTECCIÓN EXTRA: Si el bot se reinicia y hay un bache de horas antiguas, 
-                    # evitamos enviar cosas con más de 1 hora de atraso para no inundar el canal.
+                    # Filtro estricto: Si la hora del sorteo es del futuro lejano o desfasada por error de la web, la evitamos
                     try:
+                        sorteo_dt = datetime.strptime(hora_str, "%I:%M %p").replace(
+                            year=ahora_dt.year, month=ahora_dt.month, day=ahora_dt.day
+                        )
                         diferencia_minutos = (ahora_dt - sorteo_dt).total_seconds() / 60
-                        if diferencia_minutos > 60: # Si el sorteo pasó hace más de 1 hora y media, lo marcaremos como enviado sin spamear
+                        
+                        # Si el bot lee un sorteo con más de 90 minutos de atraso al iniciar, lo marca como enviado sin espamear
+                        if diferencia_minutos > 90:
                             nuevos_para_guardar.add(id_resultado)
                             hubo_cambios = True
                             continue
-                    except:
+                        
+                        # Si la web publica por error una hora del futuro que aún no ha ocurrido en la vida real
+                        if diferencia_minutos < -10:
+                            continue
+                    except Exception:
                         pass
 
                     if num_formatted in RECOMENDADOS_HOY and num_formatted not in ACIERTOS_HOY:
