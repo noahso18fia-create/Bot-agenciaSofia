@@ -590,9 +590,9 @@ def enviar_mensaje_cierre():
 
 def enviar_aviso_cierre_sorteo():
     enviar_telegram(
-        "🛑 *¡ATENCIÓN!* 🛑\n\n"
-        "El tiempo de jugadas ha terminado por este sorteo en la **AGENCIA Sofía**.\n\n"
-        "🤞 ¡Cruzamos los dedos por ti, mucha suerte en tus apuestas! 🎲🔥",
+        "🔔 ¡JUGADAS CERRADAS! 🎰\n\n"
+        "⏰ Se cerró el tiempo de jugadas para este sorteo en la **AGENCIA F&D**.\n\n"
+        "🍀 ¡Mucha suerte a todos nuestros jugadores! 💜",
         disable_web_preview=True
     )
 
