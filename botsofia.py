@@ -645,17 +645,12 @@ def enviar_piramide_diaria():
 # ==========================================
 # REGALOS
 # ==========================================
-# ==========================================
-# REGALOS DEL DÍA - ALEATORIOS SOFÍA
-# ==========================================
 
 def enviar_regalos_diarios():
 
     ahora = datetime.now()
     fecha_str = ahora.strftime("%d/%m/%Y")
 
-    # Selección completamente aleatoria.
-    # No utiliza la fecha como semilla.
     regalos = random.sample(
         ANIMALES_POOL,
         3
@@ -697,6 +692,8 @@ def enviar_regalos_diarios():
         f"{regalos[1]} | "
         f"{regalos[2]}"
     )
+
+
 # ==========================================
 # OBTENER ANIMALES SALIDOS
 # ==========================================
@@ -847,7 +844,8 @@ def enviar_combinacion_diaria():
         mensaje,
         True
     )
-    
+
+
 # ==========================================
 # ESTUDIO MEDIODÍA
 # ==========================================
@@ -911,6 +909,7 @@ def enviar_estudio_mediodia():
 # ==========================================
 # SALUDO MATUTINO
 # ==========================================
+
 def enviar_saludo_matutino():
     enviar_telegram(
         "☕ ¡Buenos días a todos! ☀️\n\n"
@@ -991,6 +990,7 @@ def enviar_mensaje_cierre():
         "💤 ¡Que descansen y tengan dulces sueños! 👋",
         disable_web_preview=True
     )
+
 
 # ==========================================
 # AVISO CIERRE SORTEO
@@ -1086,17 +1086,9 @@ def guardar_registros(enviados_set):
 # VERIFICAR Y ENVIAR RESULTADOS
 # ==========================================
 
-# ==========================================
-# VERIFICAR Y ENVIAR RESULTADOS
-# ==========================================
-
 def verificar_y_enviar_resultados_individuales():
 
     enviados_hoy = cargar_registros()
-
-    es_primera_ejecucion = (
-        len(enviados_hoy) == 0
-    )
 
     print("🔎 Revisando resultados de WinBig...")
 
@@ -1112,18 +1104,11 @@ def verificar_y_enviar_resultados_individuales():
             timeout=15
         )
 
-        print(
-            f"🌐 WinBig respondió: "
-            f"{respuesta.status_code}"
-        )
-
         if respuesta.status_code != 200:
-
             print(
                 f"⚠️ WinBig respondió "
                 f"{respuesta.status_code}"
             )
-
             return
 
         soup = BeautifulSoup(
@@ -1141,11 +1126,6 @@ def verificar_y_enviar_resultados_individuales():
                 r"card|box|item|lotto|result",
                 re.IGNORECASE
             )
-        )
-
-        print(
-            f"📋 Tarjetas encontradas: "
-            f"{len(tarjetas)}"
         )
 
         hubo_cambios = False
@@ -1258,10 +1238,6 @@ def verificar_y_enviar_resultados_individuales():
                 nombre_loteria_limpio
             )
 
-            # ==================================
-            # TRADUCIR LOTERÍAS
-            # ==================================
-
             for sigla, nombre_largo in (
                 TRADUCCION_LOTERIAS.items()
             ):
@@ -1289,10 +1265,6 @@ def verificar_y_enviar_resultados_individuales():
             ):
 
                 continue
-
-            # ==================================
-            # BUSCAR SORTEOS
-            # ==================================
 
             slots_sorteo = tarjeta.find_all(
                 [
@@ -1323,10 +1295,6 @@ def verificar_y_enviar_resultados_individuales():
                 if "PENDIENTE" in texto_slot:
                     continue
 
-                # ==================================
-                # HORA
-                # ==================================
-
                 match_h = re.search(
                     r"\b(\d{1,2}:\d{2}\s*(?:AM|PM))\b",
                     texto_slot
@@ -1339,10 +1307,6 @@ def verificar_y_enviar_resultados_individuales():
                     match_h.group(1)
                     .upper()
                 )
-
-                # ==================================
-                # RESULTADO
-                # ==================================
 
                 match_res = re.search(
                     r"(\d{1,2}\s-\s"
@@ -1361,17 +1325,6 @@ def verificar_y_enviar_resultados_individuales():
 
                 resultados_detectados += 1
 
-                print(
-                    f"🔍 Detectado: "
-                    f"{nombre_loteria_ind} | "
-                    f"{hora} | "
-                    f"{resultado}"
-                )
-
-                # ==================================
-                # CONTAR ANIMALES
-                # ==================================
-
                 CONTEO_ANIMALES_HOY[resultado] = (
                     CONTEO_ANIMALES_HOY.get(
                         resultado,
@@ -1385,10 +1338,6 @@ def verificar_y_enviar_resultados_individuales():
                     .strip()
                     .zfill(2)
                 )
-
-                # ==================================
-                # COMPROBAR ACIERTO
-                # ==================================
 
                 if (
                     numero in RECOMENDADOS_HOY
@@ -1415,140 +1364,15 @@ def verificar_y_enviar_resultados_individuales():
                         numero
                     )
 
-                    print(
-                        f"🎉 ACIERTO: "
-                        f"{numero} | "
-                        f"{nombre_loteria_ind} | "
-                        f"{hora}"
-                    )
-
-                # ==================================
-                # ID ÚNICO
-                # ==================================
-
                 id_resultado = (
                     f"{nombre_loteria_ind}_"
                     f"{hora}_"
                     f"{resultado}"
                 )
 
-                # ==================================
-                # PRIMERA EJECUCIÓN
-                # ==================================
-
-                if es_primera_ejecucion:
-
-                    nuevos_para_guardar.add(
-                        id_resultado
-                    )
-
-                    continue
-
-                # ==================================
-                # RESULTADO NUEVO
-                # ==================================
-
                 if id_resultado not in enviados_hoy:
-
-                    hora_actual_str = (
-                        datetime.now().strftime(
-                            "%I:%M %p"
-                        )
-                    )
-
-                    mensaje = (
-                        HEADER_SOFIA.format(
-                            nombre_loteria=(
-                                nombre_loteria_ind
-                            ),
-                            hora=hora,
-                            resultado=resultado
-                        )
-                    )
-
-                    enviar_telegram(
-                        mensaje,
-                        True
-                    )
-
-                    nuevos_para_guardar.add(
-                        id_resultado
-                    )
-
-                    hubo_cambios = True
-
-                    resultados_nuevos += 1
-
-                    print(
-                        f"📤 RESULTADO ENVIADO: "
-                        f"{nombre_loteria_ind} | "
-                        f"{hora} | "
-                        f"{resultado}"
-                    )
-
-                    time.sleep(1.5)
-
-        # ==================================
-        # GUARDAR REGISTROS
-        # ==================================
-
-        if es_primera_ejecucion:
-
-            guardar_registros(
-                nuevos_para_guardar
-            )
-
-            print(
-                "📚 Primera ejecución del día: "
-                "resultados actuales registrados."
-            )
-
-        elif hubo_cambios:
-
-            guardar_registros(
-                nuevos_para_guardar
-            )
-
-        print(
-            f"✅ Revisión terminada | "
-            f"Detectados: {resultados_detectados} | "
-            f"Nuevos enviados: {resultados_nuevos}"
-        )
-
-    except Exception as e:
-
-        print(
-            "❌ Error al verificar "
-            f"resultados individuales: {e}"
-        )
-                            )
-
-                # ==================================
-                # ENVIAR RESULTADO NORMAL
-                # ==================================
-
-                id_resultado = (
-                    f"{nombre_loteria_ind}_"
-                    f"{hora}_"
-                    f"{resultado}"
-                )
-
-                if es_primera_ejecucion:
-
-                    nuevos_para_guardar.add(
-                        id_resultado
-                    )
-
-                    continue
-
-                if id_resultado not in enviados_hoy:
-
-                    hora_actual_str = datetime.now().strftime(
-                        "%I:%M %p"
-                    )
 
                     mensaje = HEADER_SOFIA.format(
-                        hora_actual=hora_actual_str,
                         nombre_loteria=nombre_loteria_ind,
                         hora=hora,
                         resultado=resultado
@@ -1565,38 +1389,27 @@ def verificar_y_enviar_resultados_individuales():
 
                     hubo_cambios = True
 
-                    print(
-                        f"📤 Resultado enviado: "
-                        f"{nombre_loteria_ind} | "
-                        f"{hora} | "
-                        f"{resultado}"
-                    )
+                    resultados_nuevos += 1
 
                     time.sleep(1.5)
 
-        if es_primera_ejecucion:
+        if hubo_cambios:
 
             guardar_registros(
                 nuevos_para_guardar
             )
 
-            print(
-                "📚 Primera ejecución: "
-                "resultados actuales registrados "
-                "sin reenviarlos."
-            )
-
-        elif hubo_cambios:
-
-            guardar_registros(
-                nuevos_para_guardar
-            )
+        print(
+            f"✅ Revisión terminada | "
+            f"Detectados: {resultados_detectados} | "
+            f"Nuevos enviados: {resultados_nuevos}"
+        )
 
     except Exception as e:
 
         print(
-            "❌ Error verificando resultados: "
-            f"{e}"
+            "❌ Error al verificar "
+            f"resultados individuales: {e}"
         )
 
 
@@ -1681,7 +1494,7 @@ def loop_bot():
     ).do(
         enviar_saludo_matutino
     )
-    
+
     schedule.every().day.at(
         "09:40"
     ).do(
@@ -1712,19 +1525,11 @@ def loop_bot():
         enviar_mensaje_cierre
     )
 
-    # ==================================
-    # REVISAR WINBIG CADA MINUTO
-    # ==================================
-
-    schedule.every(
-        1
-    ).minutes.do(
+    schedule.every(1).minutes.do(
         verificar_y_enviar_resultados_individuales
     )
 
-    schedule.every(
-        1
-    ).minutes.do(
+    schedule.every(1).minutes.do(
         verificar_minuto
     )
 
