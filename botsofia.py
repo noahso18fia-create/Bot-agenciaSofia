@@ -70,12 +70,13 @@ TRADUCCION_LOTERIAS = {
 }
 
 HEADER_SOFIA = (
-    "*AGENCIA SOFÍA*\n"
-    "*RESULTADOS*\n\n"
-    "🎲 *{nombre_loteria}* 🎲\n"
-    "Hora: {hora}\n"
-    "Animalito: *{resultado}*\n\n"
-    "04163199157"
+    "*🎯 AGENCIA SOFIA 🎯*\n"
+    "━━━━━━━━━━━━━━━━━━\n"
+    "🎲 🎰 {nombre_loteria} 🎲\n"
+    "🕐 Hora: *{hora}*\n"
+    "🐾 Resultado: *{resultado}*\n"
+    "━━━━━━━━━━━━━━━━━━\n"
+    "📲 04163199157\n"
 )
 
 app = Flask('')
