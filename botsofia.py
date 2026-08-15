@@ -519,7 +519,7 @@ def enviar_aviso_cierre_sorteo():
     enviar_telegram(
         "🛑 *¡ATENCIÓN!* 🛑\n\n"
         "El tiempo de jugadas ha terminado por este sorteo en la **AGENCIA SOFÍA**.\n\n"
-        "🤞 ¡Cruzamos los dedos por ti, mucha suerte en tus apuestas! 🎲🔥\n"
+        "🤞 ¡Mucha suerte en tus apuestas! 🎲🔥\n"
         "WHATSAPP: 04163199157",
         disable_web_preview=True
     )
@@ -546,7 +546,7 @@ def guardar_registros(enviados_set):
     except Exception as e:
         print(f"Error al guardar registros: {e}")
 
-def verificar_y_enviar_resultados_individuales():
+ef verificar_y_enviar_resultados_individuales():
     enviados_hoy = cargar_registros()
     es_primera_ejecucion = len(enviados_hoy) == 0
      
@@ -584,7 +584,8 @@ def verificar_y_enviar_resultados_individuales():
                 continue
 
             nombre_loteria_limpio = limpiar_texto(nombre_loteria)
-            
+            loteria_key = nombre_loteria_limpio
+
             nombre_loteria_ind = nombre_loteria_limpio
             for sigla, nombre_largo in TRADUCCION_LOTERIAS.items():
                 if sigla in nombre_loteria_limpio.upper() or nombre_loteria_limpio.upper() == sigla:
@@ -625,22 +626,22 @@ def verificar_y_enviar_resultados_individuales():
                         f"🎯 *{resultado}*\n"
                         f"🎲 {nombre_loteria_ind}\n"
                         f"🕒 {hora}\n\n"
-                        "🍀 *¡Felicidades a todos los que confiaron en Agencia Sofía!*"
+                        "🍀 *¡Felicidades a todos los que confiaron en Agencia Sofia!*"
                     )
+
                     enviar_telegram(mensaje)
+
                     ACIERTOS_HOY.add(numero)
 
                 id_resultado = f"{nombre_loteria_ind}_{hora}_{resultado}"
 
-                # Si es la primera ejecución, registramos los resultados actuales SIN enviarlos para evitar spam
                 if es_primera_ejecucion:
                     nuevos_para_guardar.add(id_resultado)
                     continue
 
-                # A partir de la segunda ejecución, si aparece uno nuevo, sí se envía al canal
                 if id_resultado not in enviados_hoy:
                     hora_actual_str = datetime.now().strftime("%I:%M %p")
-                    mensaje = HEADER_SOFIA.format(
+                    mensaje = HEADER_FyD.format(
                         hora_str=hora_actual_str,
                         nombre_loteria=nombre_loteria_ind,
                         hora=hora,
