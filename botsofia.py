@@ -809,7 +809,12 @@ if __name__ == "__main__":
     t_bot.start()
      
     try:
+        # Eliminar cualquier webhook o conexión anterior colgada antes de iniciar
         bot.remove_webhook()
+        time.sleep(1)
+        
+        print("Iniciando bot de Telegram...")
+        # Configurar un intervalo y timeout seguros para evitar conflictos
         t_polling = Thread(target=lambda: bot.infinity_polling(skip_pending=True, interval=3, timeout=20))
         t_polling.daemon = True
         t_polling.start()
