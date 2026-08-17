@@ -500,7 +500,7 @@ def enviar_estudio_8am():
         RECOMENDADOS_HOY[numero] = "🔍 Análisis 8:15 AM"
 
     mensaje = (
-        "🎯 *AGENCIA Sofía* 🎯\n"
+        "🎯 *AGENCIA SOFIA* 🎯\n"
         "🔍 *ANÁLISIS TRAS EL SORTEO DE LAS 8:00 AM* 🔍\n\n"
         "¡Ya salieron los primeros animalitos! Evaluando la apertura de la pizarra y descartando lo ya jugado, la casa trae las proyecciones analíticas para los siguientes sorteos:\n\n"
         f"🔥 *Regalitos recomendados:* `{analisis[0]}` y `{analisis[1]}`\n\n"
@@ -523,7 +523,7 @@ def enviar_estudio_mediodia():
     t_str = f"{tripleta[0].split(' - ')[0]} - {tripleta[1].split(' - ')[0]} - {tripleta[2].split(' - ')[0]}"
      
     mensaje = (
-        "🎯 *AGENCIA Sofía* 🎯\n"
+        "🎯 *AGENCIA SOFIA* 🎯\n"
         "☀️ *ANÁLISIS DEL MEDIODÍA* ☀️\n\n"
         "*¡Mitad de jornada! Estudiando los resultados que nos dejó la mañana y analizando tendencias en vivo, el tablero apunta hacia las siguientes proyecciones analíticas:*\n\n"
         f"🔥 *Animales calientes:* `{analisis[0]}` y `{analisis[1]}`\n"
@@ -540,7 +540,7 @@ def enviar_estudio_tarde():
         RECOMENDADOS_HOY[numero] = "🌇 Análisis Tarde"
 
     mensaje = (
-        "🎯 *AGENCIA Sofía* 🎯\n"
+        "🎯 *AGENCIA SOFIA* 🎯\n"
         "🌇 *ANÁLISIS Y CIERRE DE LA TARDE* 🌇\n\n"
         "¡A pocas horas de terminar la jornada! Evaluando el comportamiento de los últimos sorteos y filtrando por análisis los animales con mayor probabilidad para asegurar el cierre:\n\n"
         f"⚡️ *Imparables de la Tarde / Cierre:* `{analisis[0]}` y `{analisis[1]}`\n\n"
@@ -551,7 +551,7 @@ def enviar_estudio_tarde():
 
 def enviar_saludo_matutino():
     enviar_telegram(
-        "🎯 AGENCIA Sofía 🎯\n\n"
+        "🎯 AGENCIA SOFIA🎯\n\n"
         "☀️ ¡Buenos días! Arrancamos la jornada con la mejor actitud y la mejor energía para ganar.\n\n"
         "📲 WHATSAPP: 04163199157\n"
         "¡Mucho éxito en tus jugadas de hoy! 🍀🔥",
@@ -593,7 +593,7 @@ def enviar_mensaje_cierre():
 def enviar_aviso_cierre_sorteo():
     enviar_telegram(
         "🔔 ¡JUGADAS CERRADAS! 🎰\n\n"
-        "⏰ Se cerró el tiempo de jugadas para este sorteo en la **AGENCIA F&D**.\n\n"
+        "⏰ Se cerró el tiempo de jugadas para este sorteo en la **AGENCIA SOFIA**.\n\n"
         "🍀 ¡Mucha suerte a todos nuestros jugadores! 💜",
         disable_web_preview=True
     )
