@@ -691,32 +691,36 @@ def verificar_y_enviar_resultados_individuales():
 
                 id_resultado = f"{nombre_loteria_ind}_{hora}_{resultado}"
 
-                if es_primera_ejecucion:
-                    nuevos_para_guardar.add(id_resultado)
-                    continue
-
-                if numero in RECOMENDADOS_HOY and numero not in ACIERTOS_HOY:
-                    mensaje = (
-                        "🎉🎉 *¡ACERTAMOS!* 🎉🎉\n\n"
-                        f"✅ {RECOMENDADOS_HOY[numero]}\n\n"
-                        f"🎯 *{resultado}*\n"
-                        f"🎲 {nombre_loteria_ind}\n"
-                        f"🕒 {hora}\n\n"
-                        "🍀 *¡Felicidades a todos los que confiaron en Agencia Sofía!*"
-                    )
-                    enviar_telegram(mensaje)
-                    ACIERTOS_HOY.add(numero)
-
+                # 1. EVALUAR Y CELEBRAR ACIERTOS (Solo si el resultado es nuevo en el ciclo de escaneo)
                 if id_resultado not in enviados_hoy:
-                    mensaje = HEADER_Sofia.format(
-                        nombre_loteria=nombre_loteria_ind,
-                        hora=hora,
-                        resultado=resultado
-                    )
-                    enviar_telegram(mensaje)
+                    if numero in RECOMENDADOS_HOY and numero not in ACIERTOS_HOY:
+                        # CORRECCIÓN: Si es la primera ejecución y encuentra resultados viejos, 
+                        # no celebra hacia atrás, solo celebra los que van saliendo en adelante.
+                        if not es_primera_ejecucion:
+                            mensaje = (
+                                "🎉🎉 *¡ACERTAMOS!* 🎉🎉\n\n"
+                                f"✅ {RECOMENDADOS_HOY[numero]}\n\n"
+                                f"🎯 *{resultado}*\n"
+                                f"🎲 {nombre_loteria_ind}\n"
+                                f"🕒 {hora}\n\n"
+                                "🍀 *¡Felicidades a todos los que confiaron en Agencia Sofía!*"
+                            )
+                            enviar_telegram(mensaje)
+                            ACIERTOS_HOY.add(numero)
+                            time.sleep(1.5)
+
+                    # 2. ENVIAR EL RESULTADO AL CANAL (Omitiendo el spam masivo inicial si es primera ejecución)
+                    if not es_primera_ejecucion:
+                        mensaje = HEADER_Sofia.format(
+                            nombre_loteria=nombre_loteria_ind,
+                            hora=hora,
+                            resultado=resultado
+                        )
+                        enviar_telegram(mensaje)
+                        hubo_cambios = True
+                        time.sleep(1.5)
+
                     nuevos_para_guardar.add(id_resultado)
-                    hubo_cambios = True
-                    time.sleep(1.5)
 
         if es_primera_ejecucion or hubo_cambios:
             guardar_registros(nuevos_para_guardar)
