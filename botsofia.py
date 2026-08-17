@@ -569,10 +569,12 @@ def enviar_tasa_dolar():
             if dolar_div and dolar_div.find('strong'):
                 precio_dolar = dolar_div.find('strong').get_text(strip=True)
         enviar_telegram(
-            "💵 TASA OFICIAL BCV 💵\n"
-            f"📈 Precio Oficial: Bs. {precio_dolar}\n"
-            f"Verifica la tasa oficial en: {URL_BCV}",
-            disable_web_preview=True
+          (
+    "💰 *DÓLAR OFICIAL BCV* 🇻🇪\n"
+    f"💵 *Bs. {precio_dolar}*\n\n"
+    "📊 Tasa oficial del día"
+),
+disable_web_preview=True
         )
     except Exception as e:
         print(f"Error BCV: {e}")
@@ -849,7 +851,7 @@ def loop_bot():
     schedule.every().day.at("12:15").do(enviar_estudio_mediodia)
     schedule.every().day.at("16:15").do(enviar_estudio_tarde)
     
-    schedule.every().day.at("15:30").do(enviar_tasa_dolar)
+    schedule.every().day.at("18:30").do(enviar_tasa_dolar)
     schedule.every().day.at("20:00").do(enviar_mensaje_cierre)
     
     schedule.every().day.at("09:30").do(enviar_mensaje_automatico)
