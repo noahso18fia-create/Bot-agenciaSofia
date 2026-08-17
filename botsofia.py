@@ -431,9 +431,7 @@ if __name__ == "__main__":
         print(f"Error polling: {e}")
 
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
-
-bot = telebot.TeleBot(TOKEN)
+    app.run(host="0.0.0.0", port=port)bot = telebot.TeleBot(TOKEN)
 
 URL_LOTERIA = 'https://lotery.winbigvzla.com/resultados'
 URL_BCV = 'https://www.bcv.org.ve/'
@@ -845,7 +843,7 @@ def enviar_regalos_diarios():
      
     for animal in regalos_seleccionados:
         numero = animal.split(" - ")[0].zfill(2)
-        RECOMENDADOS_HOY[numero] = {"motivo": "🎁 Regalo del Día (Análisis)", "hora_emision": ahora}
+        RECOMENDADOS_HOY[numero] = "🎁 Regalo del Día (Análisis)"
 
     mensaje_regalos = (
         "🎯 *AGENCIA SOFIA* 🎯\n"
@@ -871,7 +869,7 @@ def enviar_combinacion_diaria():
 
     for animal in seleccionados:
         num = animal.split(" - ")[0].zfill(2)
-        RECOMENDADOS_HOY[num] = {"motivo": "🎯 Combinación Especial por Análisis", "hora_emision": datetime.now()}
+        RECOMENDADOS_HOY[num] = "🎯 Combinación Especial por Análisis"
 
     par_str = f"{par1.split(' - ')[0]} - {par2.split(' - ')[0]}"
     trip_str = f"{trip1.split(' - ')[0]} - {trip2.split(' - ')[0]} - {trip3.split(' - ')[0]}"
@@ -896,7 +894,7 @@ def enviar_estudio_8am():
     analisis = seleccionar_analisis_dinamico(2)
     for animal in analisis:
         numero = animal.split(" - ")[0].zfill(2)
-        RECOMENDADOS_HOY[numero] = {"motivo": "🔍 Análisis 8:15 AM", "hora_emision": datetime.now()}
+        RECOMENDADOS_HOY[numero] = "🔍 Análisis 8:15 AM"
 
     mensaje = (
         "🎯 *AGENCIA Sofía* 🎯\n"
@@ -912,12 +910,12 @@ def enviar_estudio_mediodia():
     analisis = seleccionar_analisis_dinamico(2)
     for animal in analisis:
         numero = animal.split(" - ")[0].zfill(2)
-        RECOMENDADOS_HOY[numero] = {"motivo": "☀️ Análisis Mediodía", "hora_emision": datetime.now()}
+        RECOMENDADOS_HOY[numero] = "☀️ Análisis Mediodía"
 
     tripleta = seleccionar_analisis_dinamico(3)
     for animal in tripleta:
         numero = animal.split(" - ")[0].zfill(2)
-        RECOMENDADOS_HOY[numero] = {"motivo": "🎯 Tripleta Mediodía", "hora_emision": datetime.now()}
+        RECOMENDADOS_HOY[numero] = "🎯 Tripleta Mediodía"
 
     t_str = f"{tripleta[0].split(' - ')[0]} - {tripleta[1].split(' - ')[0]} - {tripleta[2].split(' - ')[0]}"
      
@@ -936,7 +934,7 @@ def enviar_estudio_tarde():
     analisis = seleccionar_analisis_dinamico(2)
     for animal in analisis:
         numero = animal.split(" - ")[0].zfill(2)
-        RECOMENDADOS_HOY[numero] = {"motivo": "🌇 Análisis Tarde", "hora_emision": datetime.now()}
+        RECOMENDADOS_HOY[numero] = "🌇 Análisis Tarde"
 
     mensaje = (
         "🎯 *AGENCIA Sofía* 🎯\n"
@@ -1086,49 +1084,17 @@ def verificar_y_enviar_resultados_individuales():
                 CONTEO_ANIMALES_HOY[resultado] = CONTEO_ANIMALES_HOY.get(resultado, 0) + 1
                 numero = resultado.split("-")[0].strip().zfill(2)
 
-                # Solo celebrar un acierto si el sorteo ocurrió DESPUÉS de que
-                # el dato fue publicado. Esto evita celebrar resultados viejos
-                # (por ejemplo, un resultado de las 9:00 AM cuando el dato se
-                # publicó a las 4:15 PM).
                 if numero in RECOMENDADOS_HOY and numero not in ACIERTOS_HOY:
-                    info_rec = RECOMENDADOS_HOY[numero]
-
-                    # Compatibilidad: las recomendaciones nuevas guardan motivo
-                    # + hora_emision. Si por alguna razón existe un registro viejo
-                    # en memoria, no se celebra como acierto.
-                    if isinstance(info_rec, dict):
-                        hora_emision = info_rec.get("hora_emision")
-                        motivo_rec = info_rec.get("motivo", "Dato recomendado")
-
-                        dt_sorteo = None
-                        try:
-                            dt_sorteo = datetime.strptime(
-                                hora.strip().upper(), "%I:%M %p"
-                            ).replace(
-                                year=hora_emision.year,
-                                month=hora_emision.month,
-                                day=hora_emision.day
-                            )
-                        except Exception:
-                            dt_sorteo = None
-
-                        # Condición principal: el resultado debe ser posterior
-                        # al momento exacto en que se publicó el dato.
-                        if (
-                            hora_emision
-                            and dt_sorteo
-                            and dt_sorteo > hora_emision
-                        ):
-                            mensaje = (
-                                "🎉🎉 *¡ACERTAMOS!* 🎉🎉\n\n"
-                                f"✅ {motivo_rec}\n\n"
-                                f"🎯 *{resultado}*\n"
-                                f"🎲 {nombre_loteria_ind}\n"
-                                f"🕒 {hora}\n\n"
-                                "🍀 *¡Felicidades a todos los que confiaron en Agencia Sofía!*"
-                            )
-                            enviar_telegram(mensaje)
-                            ACIERTOS_HOY.add(numero)
+                    mensaje = (
+                        "🎉🎉 *¡ACERTAMOS!* 🎉🎉\n\n"
+                        f"✅ {RECOMENDADOS_HOY[numero]}\n\n"
+                        f"🎯 *{resultado}*\n"
+                        f"🎲 {nombre_loteria_ind}\n"
+                        f"🕒 {hora}\n\n"
+                        "🍀 *¡Felicidades a todos los que confiaron en Agencia Sofía!*"
+                    )
+                    enviar_telegram(mensaje)
+                    ACIERTOS_HOY.add(numero)
 
                 id_resultado = f"{nombre_loteria_ind}_{hora}_{resultado}"
 
