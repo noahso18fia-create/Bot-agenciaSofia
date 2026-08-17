@@ -157,6 +157,10 @@ def home():
 def ping():
     return "OK", 200
 
+@app.route('/keep_alive')
+def keep_alive():
+    return "I am alive!", 200
+
 @app.route('/test/madrugada')
 def test_madrugada():
     enviar_saludo_madrugada()
