@@ -136,86 +136,11 @@ app = Flask('')
 
 @app.route('/')
 def home():
-    return (
-        f"¡El bot de resultados individuales de la <b>Agencia Sofía</b> está activo en el canal {CANAL}!<br><br>"
-        "<b>Enlaces de prueba rápida (Test):</b><br>"
-        "👉 <a href='/test/madrugada'>Probar Saludo de Madrugada</a><br>"
-        "👉 <a href='/test/piramide'>Probar Pirámide Numérica (Imagen)</a><br>"
-        "👉 <a href='/test/regalos'>Probar Regalos del Día (Análisis)</a><br>"
-        "👉 <a href='/test/saludo'>Probar Saludo Matutino</a><br>"
-        "👉 <a href='/test/estudio_manana'>Probar Análisis de las 8 AM</a><br>"
-        "👉 <a href='/test/estudio_mediodia'>Probar Análisis del Mediodía</a><br>"
-        "👉 <a href='/test/estudio_tarde'>Probar Análisis de la Tarde</a><br>"
-        "👉 <a href='/test/bcv'>Probar Tasa Oficial BCV</a><br>"
-        "👉 <a href='/test/sorteo'>Probar Cierre de Sorteo (Min 25/55)</a><br>"
-        "👉 <a href='/test/cierre'>Probar Cierre de Jornada (8:00 PM)</a><br>"
-        "👉 <a href='/test/combinacion'>Probar Combinación Diaria (Análisis)</a><br>"
-        "👉 <a href='/test/publicidad_cashea'>Probar Publicidad Cashea</a>"
-    )
+    return f"¡El bot de resultados individuales de la <b>Agencia Sofía</b> está activo en el canal {CANAL}!"
 
 @app.route('/ping')
 def ping():
     return "OK", 200
-
-@app.route('/test/madrugada')
-def test_madrugada():
-    enviar_saludo_madrugada()
-    return "Prueba de Saludo de Madrugada ejecutada."
-
-@app.route('/test/piramide')
-def test_piramide():
-    enviar_piramide_diaria()
-    return "Prueba de Pirámide Numérica en Imagen ejecutada."
-
-@app.route('/test/regalos')
-def test_regalos():
-    enviar_regalos_diarios()
-    return "Prueba de Regalos del Día ejecutada."
-
-@app.route('/test/saludo')
-def test_saludo():
-    enviar_saludo_matutino()
-    return "Prueba de Saludo Matutino ejecutada."
-
-@app.route('/test/estudio_manana')
-def test_estudio_manana():
-    enviar_estudio_8am()
-    return "Prueba de Análisis de las 8 AM ejecutada."
-
-@app.route('/test/estudio_mediodia')
-def test_estudio_mediodia():
-    enviar_estudio_mediodia()
-    return "Prueba de Análisis del Mediodía ejecutada."
-
-@app.route('/test/estudio_tarde')
-def test_estudio_tarde():
-    enviar_estudio_tarde()
-    return "Prueba de Análisis de la Tarde ejecutada."
-
-@app.route('/test/bcv')
-def test_bcv():
-    enviar_tasa_dolar()
-    return "Prueba de Tasa BCV ejecutada."
-
-@app.route('/test/sorteo')
-def test_sorteo():
-    enviar_aviso_cierre_sorteo()
-    return "Prueba de Cierre de Sorteo ejecutada."
-
-@app.route('/test/cierre')
-def test_cierre():
-    enviar_mensaje_cierre()
-    return "Prueba de Cierre de Jornada ejecutada."
-
-@app.route('/test/combinacion')
-def test_combinacion():
-    enviar_combinacion_diaria()
-    return "Prueba de Combinación Diaria ejecutada."
-
-@app.route('/test/publicidad_cashea')
-def test_publicidad_cashea():
-    enviar_publicidad_cashea_9am()
-    return "Prueba de Publicidad Cashea ejecutada."
 
 def limpiar_texto(texto):
     return " ".join(texto.split())
@@ -253,9 +178,6 @@ def enviar_mensaje_automatico():
     ULTIMO_INDICE_MENSAJE = indice
     enviar_telegram(MENSAJES_AUTOMATICOS[indice], disable_web_preview=True)
 
-# ==========================================
-# FUNCIONES DE ENVÍO PARA CADA HORARIO DE CASHEA
-# ==========================================
 def enviar_publicidad_cashea_9am():
     enviar_telegram(PUBLICIDAD_CASHEA_9AM, disable_web_preview=True)
 
@@ -464,7 +386,7 @@ def obtener_resultados_winbig():
                             nombre_loteria = linea
                             break
 
-            # 3. Si no hay seguridad de la lotería, se ignora (CERO fallbacks a Lotto Activo)
+            # 3. Si no hay seguridad de la lotería, se ignora
             if not nombre_loteria or len(nombre_loteria) > 40:
                 continue
 
@@ -472,7 +394,6 @@ def obtener_resultados_winbig():
             if "RULETA ROYAL" in nombre_loteria_limpio.upper() or "RESULTADOS" in nombre_loteria_limpio.upper() or "ÚLTIMOS" in nombre_loteria_limpio.upper():
                 continue
 
-            # Traducción opcional de siglas conocidas manteniendo soporte dinámico para nuevas
             nombre_loteria_ind = nombre_loteria_limpio
             for sigla, nombre_largo in TRADUCCION_LOTERIAS.items():
                 if sigla == nombre_loteria_limpio.upper() or f" {sigla} " in f" {nombre_loteria_limpio.upper()} ":
@@ -568,7 +489,6 @@ def enviar_regalos_diarios():
 
 def enviar_combinacion_diaria():
     seleccionados = seleccionar_analisis_dinamico(7)
-
     fijo1, fijo2, par1, par2, trip1, trip2, trip3 = seleccionados[:7]
 
     for animal in seleccionados:
@@ -700,6 +620,7 @@ def enviar_aviso_cierre_sorteo():
     )
 
 def cargar_registros():
+    """Carga los IDs de los resultados ya enviados hoy para evitar duplicados."""
     if os.path.exists(ARCH_REGISTRO):
         try:
             with open(ARCH_REGISTRO, "r") as f:
@@ -711,6 +632,7 @@ def cargar_registros():
     return set()
 
 def guardar_registros(enviados_set):
+    """Guarda los IDs de los resultados enviados para el día de hoy."""
     data = {
         "fecha": datetime.now().strftime("%d-%m-%Y"),
         "enviados": list(enviados_set)
@@ -722,9 +644,14 @@ def guardar_registros(enviados_set):
         print(f"Error al guardar registros: {e}")
 
 def verificar_y_enviar_resultados_individuales():
+    """
+    Verifica los resultados de Winbig de forma limpia (idéntico a F&D).
+    Si es la primera ejecución del día, registra lo que ya está en la web 
+    sin spamear el canal, y solo envía al canal los resultados NUEVOS que vayan saliendo.
+    """
     enviados_hoy = cargar_registros()
     es_primera_ejecucion = len(enviados_hoy) == 0
-     
+      
     try:
         resultados_por_loteria = obtener_resultados_winbig()
         if not resultados_por_loteria:
@@ -741,40 +668,50 @@ def verificar_y_enviar_resultados_individuales():
                 if resultado == "PENDIENTE":
                     continue
 
-                CONTEO_ANIMALES_HOY[resultado] = CONTEO_ANIMALES_HOY.get(resultado, 0) + 1
                 numero = resultado.split("-")[0].strip().zfill(2)
-
                 id_resultado = f"{nombre_loteria_ind}_{hora}_{resultado}"
 
-                # 1. EVALUAR Y CELEBRAR ACIERTOS (Solo si el resultado es nuevo en el ciclo de escaneo)
-                if id_resultado not in enviados_hoy:
-                    if numero in RECOMENDADOS_HOY and numero not in ACIERTOS_HOY:
-                        if not es_primera_ejecucion:
-                            mensaje = (
-                                "🎉🎉 *¡ACERTAMOS!* 🎉🎉\n\n"
-                                f"✅ {RECOMENDADOS_HOY[numero]}\n\n"
-                                f"🎯 *{resultado}*\n"
-                                f"🎲 {nombre_loteria_ind}\n"
-                                f"🕒 {hora}\n\n"
-                                "🍀 *¡Felicidades a todos los que confiaron en Agencia Sofía!*"
-                            )
-                            enviar_telegram(mensaje)
-                            ACIERTOS_HOY.add(numero)
-                            time.sleep(1.5)
+                # Si el resultado ya fue enviado previamente hoy, se ignora
+                if id_resultado in enviados_hoy:
+                    continue
 
-                    # 2. ENVIAR EL RESULTADO AL CANAL (Omitiendo el spam masivo inicial si es primera ejecución)
-                    if not es_primera_ejecucion:
-                        mensaje = HEADER_Sofia.format(
-                            nombre_loteria=nombre_loteria_ind,
-                            hora=hora,
-                            resultado=resultado
-                        )
-                        enviar_telegram(mensaje)
-                        hubo_cambios = True
-                        time.sleep(1.5)
-
+                # Si es la primera ejecución del día, solo guardamos lo que ya salió en la web 
+                # para que NO envíe un aluvión de mensajes viejos al canal de golpe.
+                if es_primera_ejecucion:
                     nuevos_para_guardar.add(id_resultado)
+                    CONTEO_ANIMALES_HOY[resultado] = CONTEO_ANIMALES_HOY.get(resultado, 0) + 1
+                    continue
 
+                # --- A PARTIR DE AQUÍ ES UN RESULTADO NUEVO REAL ---
+                CONTEO_ANIMALES_HOY[resultado] = CONTEO_ANIMALES_HOY.get(resultado, 0) + 1
+
+                # 1. Evaluar si es un acierto de los recomendados del día
+                if numero in RECOMENDADOS_HOY and numero not in ACIERTOS_HOY:
+                    mensaje_acierto = (
+                        "🎉🎉 *¡ACERTAMOS!* 🎉🎉\n\n"
+                        f"✅ {RECOMENDADOS_HOY[numero]}\n\n"
+                        f"🎯 *{resultado}*\n"
+                        f"🎲 {nombre_loteria_ind}\n"
+                        f"🕒 {hora}\n\n"
+                        "🍀 *¡Felicidades a todos los que confiaron en Agencia Sofía!*"
+                    )
+                    enviar_telegram(mensaje_acierto)
+                    ACIERTOS_HOY.add(numero)
+                    time.sleep(1.5)
+
+                # 2. Enviar el resultado oficial al canal
+                mensaje = HEADER_Sofia.format(
+                    nombre_loteria=nombre_loteria_ind,
+                    hora=hora,
+                    resultado=resultado
+                )
+                enviar_telegram(mensaje)
+                time.sleep(1.5)
+
+                nuevos_para_guardar.add(id_resultado)
+                hubo_cambios = True
+
+        # Guardar el estado actualizado en el archivo JSON
         if es_primera_ejecucion or hubo_cambios:
             guardar_registros(nuevos_para_guardar)
 
@@ -870,9 +807,6 @@ def loop_bot():
     schedule.every().day.at("13:30").do(enviar_combinacion_diaria)
     schedule.every().day.at("17:30").do(enviar_combinacion_diaria)
 
-    # ==========================================
-    # PROGRAMACIÓN DE CASHEA (4 PUBLICIDADES EXACTAS)
-    # ==========================================
     schedule.every().day.at("09:00").do(enviar_publicidad_cashea_9am)
     schedule.every().day.at("12:00").do(enviar_publicidad_cashea_12pm)
     schedule.every().day.at("15:00").do(enviar_publicidad_cashea_3pm)
