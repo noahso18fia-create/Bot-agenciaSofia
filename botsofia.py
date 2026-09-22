@@ -20,6 +20,7 @@ from datetime import datetime, timedelta
 import random
 import json
 import telebot
+import traceback
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 
@@ -31,12 +32,11 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # ==========================================
 TOKEN = '8893057303:AAHi1D9GJEentjBJJB_6IdMNtSbQ2jxj7WQ'
 CANAL = '@agenciasofiaoficial'
-ENLACE_CANAL = 'https://t.me/+x4A5d5Jpu44yNzc5'
+ENLACE_CANAL = 'https://t.me/agenciasofiaoficial'
 
 bot = telebot.TeleBot(TOKEN)
 
-# NUEVA URL DE EXTRACCIÓN DE RESULTADOS
-URL_LOTERIA = 'https://sistema.elcalamardelasuerte.com/taquilla/resultados'
+URL_LOTERIA = 'https://lotery.winbigvzla.com/resultados'
 URL_BCV = 'https://www.bcv.org.ve/'
 
 ARCH_REGISTRO = "resultados_enviados.json"
@@ -69,6 +69,9 @@ MENSAJES_AUTOMATICOS = [
     f"🏆 ¡Juega, acierta y cobra seguro con *Agencia Sofía*! Escríbenos al WhatsApp.\n📲 04163199157"
 ]
 
+# ==========================================
+# PUBLICIDADES DE CASHEA FIJAS (4 HORARIOS)
+# ==========================================
 PUBLICIDAD_CASHEA_9AM = (
     "💳 ¡**CASHEA ACTIVO** en **Agencia Sofía**! 🚀\n"
     "Arranca tu día con la mejor facilidad. Ahora puedes jugar y asegurar tus animalitos favoritos "
@@ -99,7 +102,7 @@ PUBLICIDAD_CASHEA_430PM = (
 )
 
 ANIMALES_POOL = [
-    "00 - Ballena", "0 - Delfín", "01 - Carnero", "02 - Toro", "03 - Ciempiés", "04 - Alacrán", 
+    "00 - Ballena", "0- Delfin","01 - Carnero", "02 - Toro", "03 - Ciempiés", "04 - Alacrán", 
     "05 - León", "06 - Rana", "07 - Perico", "08 - Ratón", "09 - Águila", 
     "10 - Tigre", "11 - Gato", "12 - Caballo", "13 - Mono", "14 - Paloma", 
     "15 - Zorro", "16 - Oso", "17 - Pavo", "18 - Burro", "19 - Chivo", 
@@ -108,17 +111,6 @@ ANIMALES_POOL = [
     "30 - Caimán", "31 - Lapa", "32 - Ardilla", "33 - Pescado", "34 - Venado", 
     "35 - Jirafa", "36 - Culebra"
 ]
-
-DICCIONARIO_ANIMALES_NUMERO = {
-    "00": "Ballena", "0": "Delfín", "01": "Carnero", "02": "Toro", "03": "Ciempiés", "04": "Alacrán",
-    "05": "León", "06": "Rana", "07": "Perico", "08": "Ratón", "09": "Águila",
-    "10": "Tigre", "11": "Gato", "12": "Caballo", "13": "Mono", "14": "Paloma",
-    "15": "Zorro", "16": "Oso", "17": "Pavo", "18": "Burro", "19": "Chivo",
-    "20": "Cochino", "21": "Gallo", "22": "Camello", "23": "Cebra", "24": "Iguana",
-    "25": "Gallina", "26": "Vaca", "27": "Perro", "28": "Zamuro", "29": "Elefante",
-    "30": "Caimán", "31": "Lapa", "32": "Ardilla", "33": "Pescado", "34": "Venado",
-    "35": "Jirafa", "36": "Culebra"
-}
 
 TRADUCCION_LOTERIAS = {
     "L.A": "LOTTO ACTIVO",
@@ -261,6 +253,9 @@ def enviar_mensaje_automatico():
     ULTIMO_INDICE_MENSAJE = indice
     enviar_telegram(MENSAJES_AUTOMATICOS[indice], disable_web_preview=True)
 
+# ==========================================
+# FUNCIONES DE ENVÍO PARA CADA HORARIO DE CASHEA
+# ==========================================
 def enviar_publicidad_cashea_9am():
     enviar_telegram(PUBLICIDAD_CASHEA_9AM, disable_web_preview=True)
 
@@ -418,20 +413,119 @@ def enviar_piramide_diaria():
     except Exception as e:
         print(f"Error generando/enviando imagen pirámide: {e}")
 
+def obtener_resultados_winbig():
+    """
+    Extrae los resultados de la página de Winbig de forma estructurada,
+    ignorando por completo la sección de 'Últimos salidos' / 'Resultados de hoy',
+    leyendo únicamente los bloques normales de cada lotería de manera dinámica.
+    """
+    resultados_por_loteria = {}
+    try:
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        respuesta = requests.get(URL_LOTERIA, headers=headers, timeout=15)
+        if respuesta.status_code != 200:
+            return resultados_por_loteria
+
+        soup = BeautifulSoup(respuesta.text, 'html.parser')
+        tarjetas = soup.find_all(['div', 'article', 'section'], class_=re.compile(r'card|box|item|lotto|result', re.IGNORECASE))
+
+        for tarjeta in tarjetas:
+            # 1. Ignorar completamente la sección de "Últimos salidos" o "Resultados de hoy"
+            texto_tarjeta = tarjeta.get_text(" ", strip=True).upper()
+            if any(x in texto_tarjeta for x in ["ÚLTIMOS SALIDOS", "ULTIMOS SALIDOS", "RESULTADOS DE HOY"]):
+                continue
+
+            # Verificar si algún elemento padre pertenece a secciones prohibidas
+            padre_prohibido = False
+            for parent in tarjeta.parents:
+                parent_text = parent.get_text(" ", strip=True).upper()
+                if "ÚLTIMOS SALIDOS" in parent_text or "ULTIMOS SALIDOS" in parent_text or "RESULTADOS DE HOY" in parent_text:
+                    if parent.name in ['div', 'section'] and any(c in str(parent.get('class', '')).lower() for c in ['recent', 'latest', 'ultimos', 'salidos', 'hoy']):
+                        padre_prohibido = True
+                        break
+            if padre_prohibido:
+                continue
+
+            # 2. Reconocer dinámicamente el nombre de la lotería en su bloque HTML
+            nombre_loteria = ""
+            posibles_titulos = tarjeta.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'span', 'div', 'strong', 'b'], class_=re.compile(r'title|header|name|lotto|text', re.IGNORECASE))
+            for pt in posibles_titulos:
+                t_text = pt.get_text(" ", strip=True).upper()
+                if t_text and len(t_text) > 2 and not re.search(r'\d{1,2}:\d{2}', t_text) and "PENDIENTE" not in t_text:
+                    if t_text not in ["WINBIG", "RESULTADOS", "RESULTADOS ANIMALITOS", "ANIMALITOS", "ÚLTIMOS SALIDOS", "ULTIMOS SALIDOS"]:
+                        nombre_loteria = t_text
+                        break
+
+            if not nombre_loteria:
+                lineas = [l.strip().upper() for l in tarjeta.get_text("\n", strip=True).split("\n") if l.strip()]
+                for linea in lineas:
+                    if len(linea) > 2 and not re.search(r'\d{1,2}:\d{2}', linea) and "PENDIENTE" not in linea and "-" not in linea:
+                        if linea not in ["RESULTADOS ANIMALITOS", "ANIMALITOS", "RESULTADOS", "ÚLTIMOS SALIDOS", "ULTIMOS SALIDOS"]:
+                            nombre_loteria = linea
+                            break
+
+            # 3. Si no hay seguridad de la lotería, se ignora (CERO fallbacks a Lotto Activo)
+            if not nombre_loteria or len(nombre_loteria) > 40:
+                continue
+
+            nombre_loteria_limpio = limpiar_texto(nombre_loteria)
+            if "RULETA ROYAL" in nombre_loteria_limpio.upper() or "RESULTADOS" in nombre_loteria_limpio.upper() or "ÚLTIMOS" in nombre_loteria_limpio.upper():
+                continue
+
+            # Traducción opcional de siglas conocidas manteniendo soporte dinámico para nuevas
+            nombre_loteria_ind = nombre_loteria_limpio
+            for sigla, nombre_largo in TRADUCCION_LOTERIAS.items():
+                if sigla == nombre_loteria_limpio.upper() or f" {sigla} " in f" {nombre_loteria_limpio.upper()} ":
+                    nombre_loteria_ind = nombre_largo
+                    break
+
+            if nombre_loteria_ind not in resultados_por_loteria:
+                resultados_por_loteria[nombre_loteria_ind] = []
+
+            # 4. Extraer los slots/sorteos asociados estrictamente a este bloque
+            slots_sorteo = tarjeta.find_all(['div', 'li', 'span', 'tr'], class_=re.compile(r'item|slot|draw|row|col', re.IGNORECASE))
+            if not slots_sorteo:
+                slots_sorteo = [tarjeta]
+
+            for slot in slots_sorteo:
+                texto_slot = slot.get_text(" ", strip=True).upper()
+                match_h = re.search(r'\b(\d{1,2}:\d{2}\s*(?:AM|PM))\b', texto_slot)
+                if not match_h:
+                    continue
+                hora = match_h.group(1).upper()
+
+                if "PENDIENTE" in texto_slot:
+                    resultados_por_loteria[nombre_loteria_ind].append({
+                        "hora": hora,
+                        "resultado": "PENDIENTE",
+                        "texto": texto_slot
+                    })
+                else:
+                    match_res = re.search(r'(\d{1,2}\s-\s[A-ZÁÉÍÓÚÑa-zñáéíóú]+(?:\s+[A-ZÁÉÍÓÚÑa-zñáéíóú]+)?)', texto_slot)
+                    if match_res:
+                        resultado = limpiar_texto(match_res.group(1)).upper()
+                        resultados_por_loteria[nombre_loteria_ind].append({
+                            "hora": hora,
+                            "resultado": resultado,
+                            "texto": texto_slot
+                        })
+    except Exception as e:
+        print(f"Error en obtener_resultados_winbig: {e}")
+
+    return resultados_por_loteria
+
 def obtener_animales_salidos_actuales():
     salidos = set()
     try:
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        respuesta = requests.get(URL_LOTERIA, headers=headers, timeout=10)
-        if respuesta.status_code == 200:
-            soup = BeautifulSoup(respuesta.text, 'html.parser')
-            imgs = soup.find_all('img')
-            for img in imgs:
-                src = img.get('data-src') or img.get('src', '')
-                match_num = re.search(r'/(\d{1,2})\.(webp|png|jpg|jpeg)', src)
-                if match_num:
-                    num_str = match_num.group(1).zfill(2)
-                    salidos.add(num_str)
+        resultados_por_loteria = obtener_resultados_winbig()
+        for loteria, items in resultados_por_loteria.items():
+            for item in items:
+                resultado = item.get("resultado", "")
+                if resultado and resultado != "PENDIENTE":
+                    match_num = re.search(r'^(\d{1,2})\s-', resultado)
+                    if match_num:
+                        num_str = match_num.group(1).zfill(2)
+                        salidos.add(num_str)
     except Exception as e:
         print(f"Error obteniendo salidos para análisis: {e}")
     return salidos
@@ -580,8 +674,8 @@ def enviar_tasa_dolar():
             "💰 *DÓLAR OFICIAL BCV* 🇻🇪\n"
             f"💵 *Bs. {precio_dolar}*\n\n"
             "📊 Tasa oficial del día"
-        ),
-        disable_web_preview=True
+          ),
+          disable_web_preview=True
         )
     except Exception as e:
         print(f"Error BCV: {e}")
@@ -632,102 +726,54 @@ def verificar_y_enviar_resultados_individuales():
     es_primera_ejecucion = len(enviados_hoy) == 0
      
     try:
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        respuesta = requests.get(URL_LOTERIA, headers=headers, timeout=15)
-        if respuesta.status_code != 200:
+        resultados_por_loteria = obtener_resultados_winbig()
+        if not resultados_por_loteria:
             return
-
-        soup = BeautifulSoup(respuesta.text, 'html.parser')
-        
-        # Búsqueda basada en la estructura visual de tarjetas en la nueva plataforma
-        tarjetas = soup.find_all(['div', 'article', 'section', 'li'], class_=True)
-        if not tarjetas:
-            tarjetas = soup.find_all(['div', 'article', 'section', 'li'])
 
         hubo_cambios = False
         nuevos_para_guardar = set(enviados_hoy)
 
-        for tarjeta in tarjetas:
-            texto_tarjeta = tarjeta.get_text(" ", strip=True)
-            
-            # Extraer la hora (ej: 09:00 AM)
-            match_h = re.search(r'\b(\d{1,2}:\d{2}\s*(?:AM|PM))\b', texto_tarjeta, re.IGNORECASE)
-            if not match_h:
-                continue
-                
-            hora = match_h.group(1).upper()
-            
-            if "PENDIENTE" in texto_tarjeta.upper():
-                continue
+        for nombre_loteria_ind, items in resultados_por_loteria.items():
+            for item in items:
+                hora = item["hora"]
+                resultado = item["resultado"]
 
-            # Extraer el animalito directamente de la ruta de la imagen o del texto interno
-            img_tag = tarjeta.find('img')
-            resultado = None
-            if img_tag:
-                src = img_tag.get('data-src') or img_tag.get('src', '')
-                match_img = re.search(r'/(\d{1,2})\.(webp|png|jpg|jpeg)', src)
-                if match_img:
-                    num_val = match_img.group(1).zfill(2)
-                    nombre_animal = DICCIONARIO_ANIMALES_NUMERO.get(num_val, "ANIMAL")
-                    resultado = f"{num_val} - {nombre_animal}"
+                if resultado == "PENDIENTE":
+                    continue
 
-            # Si no se halló en la imagen, buscamos por patrón de texto
-            if not resultado:
-                match_res = re.search(r'(\d{1,2}\s*-\s*[A-ZÁÉÍÓÚÑa-zñáéíóú]+)', texto_tarjeta)
-                if match_res:
-                    res_raw = limpiar_texto(match_res.group(1))
-                    partes = res_raw.split('-')
-                    if len(partes) == 2:
-                        num_val = partes[0].strip().zfill(2)
-                        nombre_animal = partes[1].strip().capitalize()
-                        resultado = f"{num_val} - {nombre_animal}"
+                CONTEO_ANIMALES_HOY[resultado] = CONTEO_ANIMALES_HOY.get(resultado, 0) + 1
+                numero = resultado.split("-")[0].strip().zfill(2)
 
-            if not resultado:
-                continue
+                id_resultado = f"{nombre_loteria_ind}_{hora}_{resultado}"
 
-            # Deducir nombre de la lotería
-            nombre_loteria_ind = "LOTTO ACTIVO"
-            texto_mayus = texto_tarjeta.upper()
-            for sigla, nombre_largo in TRADUCCION_LOTERIAS.items():
-                if sigla in texto_mayus or nombre_largo in texto_mayus:
-                    nombre_loteria_ind = nombre_largo
-                    break
-            for l_name in ["LOTTO ACTIVO", "GRANJITA", "SELVA PLUS", "LOTTO REAL", "GUACHARO", "LOTTO CHAIMA", "MONJE MILLONARIO", "RULETA"]:
-                if l_name in texto_mayus:
-                    nombre_loteria_ind = l_name
-                    break
+                # 1. EVALUAR Y CELEBRAR ACIERTOS (Solo si el resultado es nuevo en el ciclo de escaneo)
+                if id_resultado not in enviados_hoy:
+                    if numero in RECOMENDADOS_HOY and numero not in ACIERTOS_HOY:
+                        if not es_primera_ejecucion:
+                            mensaje = (
+                                "🎉🎉 *¡ACERTAMOS!* 🎉🎉\n\n"
+                                f"✅ {RECOMENDADOS_HOY[numero]}\n\n"
+                                f"🎯 *{resultado}*\n"
+                                f"🎲 {nombre_loteria_ind}\n"
+                                f"🕒 {hora}\n\n"
+                                "🍀 *¡Felicidades a todos los que confiaron en Agencia Sofía!*"
+                            )
+                            enviar_telegram(mensaje)
+                            ACIERTOS_HOY.add(numero)
+                            time.sleep(1.5)
 
-            numero = resultado.split("-")[0].strip().zfill(2)
-            id_resultado = f"{nombre_loteria_ind}_{hora}_{resultado}"
-
-            # 1. EVALUAR Y CELEBRAR ACIERTOS
-            if id_resultado not in enviados_hoy:
-                if numero in RECOMENDADOS_HOY and numero not in ACIERTOS_HOY:
+                    # 2. ENVIAR EL RESULTADO AL CANAL (Omitiendo el spam masivo inicial si es primera ejecución)
                     if not es_primera_ejecucion:
-                        mensaje = (
-                            "🎉🎉 *¡ACERTAMOS!* 🎉🎉\n\n"
-                            f"✅ {RECOMENDADOS_HOY[numero]}\n\n"
-                            f"🎯 *{resultado}*\n"
-                            f"🎲 {nombre_loteria_ind}\n"
-                            f"🕒 {hora}\n\n"
-                            "🍀 *¡Felicidades a todos los que confiaron en Agencia Sofía!*"
+                        mensaje = HEADER_Sofia.format(
+                            nombre_loteria=nombre_loteria_ind,
+                            hora=hora,
+                            resultado=resultado
                         )
                         enviar_telegram(mensaje)
-                        ACIERTOS_HOY.add(numero)
+                        hubo_cambios = True
                         time.sleep(1.5)
 
-                # 2. ENVIAR EL RESULTADO AL CANAL
-                if not es_primera_ejecucion:
-                    mensaje = HEADER_Sofia.format(
-                        nombre_loteria=nombre_loteria_ind,
-                        hora=hora,
-                        resultado=resultado
-                    )
-                    enviar_telegram(mensaje)
-                    hubo_cambios = True
-                    time.sleep(1.5)
-
-                nuevos_para_guardar.add(id_resultado)
+                    nuevos_para_guardar.add(id_resultado)
 
         if es_primera_ejecucion or hubo_cambios:
             guardar_registros(nuevos_para_guardar)
@@ -754,73 +800,23 @@ def verificar_minuto():
 def cmd_resumen(message):
     try:
         bot.reply_to(message, "🔍 Consultando resumen de resultados actual, por favor espera...")
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        respuesta = requests.get(URL_LOTERIA, headers=headers, timeout=15)
-        if respuesta.status_code != 200:
-            bot.reply_to(message, "⚠️ No se pudo conectar con la página de resultados.")
-            return
+        resultados_por_loteria = obtener_resultados_winbig()
 
-        soup = BeautifulSoup(respuesta.text, 'html.parser')
-        tarjetas = soup.find_all(['div', 'article', 'section', 'li'])
-        resumen_por_loterias = {}
-
-        for tarjeta in tarjetas:
-            try:
-                texto_tarjeta = tarjeta.get_text(" ", strip=True)
-                match_h = re.search(r'\b(\d{1,2}:\d{2}\s*(?:AM|PM))\b', texto_tarjeta, re.IGNORECASE)
-                if not match_h:
-                    continue
-                hora = match_h.group(1).upper()
-
-                nombre_loteria = "LOTTO ACTIVO"
-                texto_mayus = texto_tarjeta.upper()
-                for sigla, nombre_largo in TRADUCCION_LOTERIAS.items():
-                    if sigla in texto_mayus or nombre_largo in texto_mayus:
-                        nombre_loteria = nombre_largo
-                        break
-                for l_name in ["LOTTO ACTIVO", "GRANJITA", "SELVA PLUS", "LOTTO REAL", "GUACHARO", "LOTTO CHAIMA", "MONJE MILLONARIO", "RULETA"]:
-                    if l_name in texto_mayus:
-                        nombre_loteria = l_name
-                        break
-
-                if nombre_loteria not in resumen_por_loterias:
-                    resumen_por_loterias[nombre_loteria] = []
-
-                if "PENDIENTE" in texto_mayus:
-                    item_str = f"• {hora} ➔ ⏳ Pendiente"
-                    if item_str not in resumen_por_loterias[nombre_loteria]:
-                        resumen_por_loterias[nombre_loteria].append(item_str)
-                else:
-                    img_tag = tarjeta.find('img')
-                    resultado = None
-                    if img_tag:
-                        src = img_tag.get('data-src') or img_tag.get('src', '')
-                        match_img = re.search(r'/(\d{1,2})\.(webp|png|jpg|jpeg)', src)
-                        if match_img:
-                            num_val = match_img.group(1).zfill(2)
-                            nombre_animal = DICCIONARIO_ANIMALES_NUMERO.get(num_val, "ANIMAL")
-                            resultado = f"{num_val} - {nombre_animal}"
-
-                    if not resultado:
-                        match_res = re.search(r'(\d{1,2}\s*-\s*[A-ZÁÉÍÓÚÑa-zñáéíóú]+)', texto_tarjeta)
-                        if match_res:
-                            res_raw = limpiar_texto(match_res.group(1))
-                            partes = res_raw.split('-')
-                            if len(partes) == 2:
-                                num_val = partes[0].strip().zfill(2)
-                                nombre_animal = partes[1].strip().capitalize()
-                                resultado = f"{num_val} - {nombre_animal}"
-
-                    if resultado:
-                        item_str = f"• {hora} ➔ {resultado}"
-                        if item_str not in resumen_por_loterias[nombre_loteria]:
-                            resumen_por_loterias[nombre_loteria].append(item_str)
-            except Exception:
-                continue
-
-        if not resumen_por_loterias:
+        if not resultados_por_loteria:
             bot.reply_to(message, "⚠️ No se encontraron resultados disponibles en este momento.")
             return
+
+        resumen_organizado = {}
+        for loteria, items in resultados_por_loteria.items():
+            if loteria not in resumen_organizado:
+                resumen_organizado[loteria] = []
+            for item in items:
+                hora = item["hora"]
+                res = item["resultado"]
+                if res == "PENDIENTE":
+                    resumen_organizado[loteria].append(f"• {hora} ➔ ⏳ Pendiente")
+                else:
+                    resumen_organizado[loteria].append(f"• {hora} ➔ {res}")
 
         fecha_hoy = datetime.now().strftime("%d/%m/%Y")
         texto_final = (
@@ -830,7 +826,7 @@ def cmd_resumen(message):
             f"📅 Fecha: {fecha_hoy}\n\n"
         )
 
-        for loteria, items in resumen_por_loterias.items():
+        for loteria, items in resumen_organizado.items():
             if items:
                 texto_final += f"🎲 *{loteria}*\n"
                 for item in items:
@@ -874,6 +870,9 @@ def loop_bot():
     schedule.every().day.at("13:30").do(enviar_combinacion_diaria)
     schedule.every().day.at("17:30").do(enviar_combinacion_diaria)
 
+    # ==========================================
+    # PROGRAMACIÓN DE CASHEA (4 PUBLICIDADES EXACTAS)
+    # ==========================================
     schedule.every().day.at("09:00").do(enviar_publicidad_cashea_9am)
     schedule.every().day.at("12:00").do(enviar_publicidad_cashea_12pm)
     schedule.every().day.at("15:00").do(enviar_publicidad_cashea_3pm)
@@ -903,5 +902,3 @@ if __name__ == "__main__":
 
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
-ENLACE_CANAL = 'https://t.me/+x4A5d5Jpu44yNzc5'
