@@ -36,7 +36,8 @@ ENLACE_CANAL = 'https://t.me/agenciasofiaoficial'
 
 bot = telebot.TeleBot(TOKEN)
 
-URL_LOTERIA = 'https://lotery.winbigvzla.com/resultados'
+# NUEVA URL DE EXTRACCIÓN DE RESULTADOS
+URL_LOTERIA = 'https://sistema.elcalamardelasuerte.com/taquilla/resultados'
 URL_BCV = 'https://www.bcv.org.ve/'
 
 ARCH_REGISTRO = "resultados_enviados.json"
